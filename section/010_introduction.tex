@@ -37,6 +37,10 @@ which additional coordination cannot improve---and can worsen---end-to-end
 latency?}
 
 We answer this question with a regime-based view.
+Unlike the Roofline model~\cite{williams2009roofline}, which characterises
+compute/memory balance for a fixed workload on static hardware, our framework
+characterises a hierarchical memory system under \emph{dynamic} orchestration
+where the dominant bottleneck itself shifts as operating conditions change.
 Multi-tier inference systems exhibit \emph{phase-like} operational regimes
 governed by two dimensionless ratios: the fast-memory residency ratio
 $R_C = C_{\mathrm{fast}}/W$ and the transfer-pressure ratio
@@ -77,5 +81,13 @@ We make four contributions:
 
 Together, these results reframe hierarchical memory coordination as
 \emph{regime-aware design} rather than continuous tuning.
+To illustrate the framework's practical accessibility, consider Llama-3\,8B at
+batch\,=\,8 on a server with 80\,GB HBM and 16.1\,GB/s PCIe bandwidth:
+$W = 41.8$\,GB gives $R_C = 80/41.8 = 1.91$ (fully capacity-compliant,
+$R_C \gg \theta_C$), and a step duration of $\Delta t = 120$\,ms with
+$D = 1.2$\,GB yields $R_B = 16.1 \times 0.12 / 1.2 = 1.61$ (well inside the
+coordination-dominated regime).
+Any practitioner can compute these two ratios from hardware datasheets and
+model-card parameter counts---before running a single experiment.
 
 \FloatBarrier

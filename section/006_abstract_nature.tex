@@ -13,10 +13,9 @@ Characterising any system by two dimensionless ratios---the fast-memory
 residency ratio ($R_C$) and the transfer-pressure ratio ($R_B$)---we
 identify three operationally distinct regimes: capacity-limited,
 coordination-dominated, and I/O-limited.
-Within coordination-dominated regimes, orchestration redistributes latency
-costs across computation, locality, transfer, and synchronisation.
-Beyond capacity or bandwidth thresholds, the same regime-agnostic strategies
-fail predictably and become additive overhead.
+Beyond capacity or bandwidth thresholds, regime-agnostic strategies fail
+predictably and their rankings \emph{invert}: methods reducing latency by
+24\% in favourable regimes increase it by 8--12\% once bandwidth saturates.
 We establish structural lower bounds proving transitions are inevitable,
 empirically calibrate boundary values ($\theta_C \approx 0.50$,
 $\theta_B \approx 0.40$) across five hardware platforms, and validate

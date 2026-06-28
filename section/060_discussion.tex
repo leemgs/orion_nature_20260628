@@ -63,6 +63,25 @@ per classification.
 The first question for any memory-bound inference system should be not ``how
 much more coordination?'' but ``in which regime does the system operate?''
 
+The regime framework implies concrete prescriptions for each operating
+condition.
+In the \emph{capacity-limited} regime ($R_C < 0.50$), the primary lever is
+fast-memory residency: increase HBM capacity, reduce batch size, or apply
+weight quantisation to shrink $W$; additional coordination overhead has
+negligible return ($\leq 5\%$ in our experiments, Table~\ref{tab:regime_inversion}).
+In the \emph{coordination-dominated} regime ($R_C \geq 0.50$, $R_B \geq 0.40$),
+pipelining, KV-cache management, and cross-tier overlap all provide measurable
+gains (18--27\%); this is the regime for which existing orchestration tools
+are effectively designed.
+In the \emph{I/O-limited} regime ($R_B < 0.40$), the correct intervention is
+to reduce compulsory transfer volume---via smaller swap granularity, selective
+layer offloading, or on-device quantisation---rather than adding scheduling
+complexity; aggressive offloading strategies (FlexGen, DeepSpeed-Inference)
+can \emph{worsen} latency by 8--12\% in this regime by amplifying an already
+saturated transfer path.
+These prescriptions are immediately actionable from two ratios computable
+before deployment.
+
 This perspective applies beyond large language models to any workload whose
 active working set cannot fully reside in fast memory---multimodal inference,
 RAG, data-intensive analytics, and HPC-style scientific computing---and
@@ -87,7 +106,9 @@ Hysteresis-like latency behaviour observed when workloads traverse boundaries
 in both directions suggests \emph{regime memory} driven by nonlinear cache-reuse
 effects; characterising this theoretically and exploiting it in scheduling is an
 open problem.
-Finally, while the regime framework identifies boundaries analytically, it does
-not yet prescribe optimal orchestration strategies \emph{within} each regime;
-combining boundary theory with workload-specific optimisation is a promising
-direction.
+Finally, while the regime framework provides first-order prescriptions (see
+\S\ref{sec:discussion}), optimal orchestration strategies \emph{within} each
+regime---particularly in the coordination-dominated regime where all four
+latency terms are co-active---remain open; combining boundary theory with
+workload-specific optimisation via reinforcement learning or Bayesian
+optimisation is a promising direction.
