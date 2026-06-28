@@ -12,10 +12,25 @@ unavoidable memory-access costs that coordination cannot offset.
 In I/O-limited regimes, physical bandwidth constraints dominate once cross-tier
 transfer approaches sustained limits; any additional coordination overhead is
 additive rather than compensatory.
-This is qualitatively analogous to phase transitions in physical systems, where
-control parameters govern discontinuous changes in dominant behaviour---an
-analogy that motivated our dimensionless-ratio formulation and may extend the
-framework to hierarchical-memory systems beyond AI inference.
+This is analogous to, but mathematically distinct from, thermodynamic phase
+transitions.
+In a thermodynamic system of diverging size, the order parameter changes
+discontinuously and the susceptibility (analogous to $S$) diverges at the
+critical point.
+Here the ``system size'' is finite: the number of transformer layers $L$ is
+fixed, and both $S$ and the boundary width carry $O(1/L)$ corrections from
+the continuum limit.
+The transitions are therefore more precisely \emph{finite-size crossovers}---abrupt
+but bounded changes in the dominant latency term at a well-defined critical
+ratio.
+Empirically, $S = 4.12$ at $\theta_C$ ($> 2\times S^*$) demonstrates that
+the crossover is operationally indistinguishable from a true transition at any
+practically relevant model scale, even though $S$ remains finite.
+This precision resolves the ``phase-like'' qualifier used throughout the main
+text: the transitions are genuine crossovers whose sharpness scales with $L$,
+and the analogy to physical phase transitions motivates the dimensionless-ratio
+formulation and may extend the framework to other hierarchical-memory systems
+beyond AI inference.
 
 \subsection{Reconciling conflicting results in prior systems research}
 
@@ -106,6 +121,20 @@ Hysteresis-like latency behaviour observed when workloads traverse boundaries
 in both directions suggests \emph{regime memory} driven by nonlinear cache-reuse
 effects; characterising this theoretically and exploiting it in scheduling is an
 open problem.
+The two-ratio framework extends naturally to modern serving paradigms with
+variable working sets.
+For mixture-of-experts (MoE) models with $N_{\mathrm{exp}}$ experts and
+top-$k$ routing, the effective working-set size per step is
+$W_{\mathrm{eff}} = W_{\mathrm{param}} \times (k/N_{\mathrm{exp}})
++ W_{\mathrm{act}} + W_{\mathrm{kv}}$, which shifts $R_C$ upward relative
+to dense activation and can move an MoE deployment from the I/O-limited to
+the coordination-dominated regime at the same hardware operating point.
+For speculative decoding, the draft and target models carry distinct working-set
+sizes and may occupy different regimes simultaneously, requiring per-model
+($R_C$, $R_B$) classification and potentially conflicting optimal orchestration
+strategies.
+Accounting for these variable-$W$ dynamics is an immediate and natural
+extension of the current framework.
 Finally, while the regime framework provides first-order prescriptions
 (``Practical regime-aware inference'' subsection above), optimal orchestration
 strategies \emph{within} each regime---particularly in the coordination-dominated regime where all four
