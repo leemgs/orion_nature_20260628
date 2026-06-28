@@ -1,0 +1,19 @@
+# Core (CPU-only, required for simulated reproduction)
+numpy>=1.24
+scipy>=1.11
+
+# Optional: GPU-accelerated inference backends
+# torch>=2.4          # PyTorch with CUDA 12.x
+# vllm>=0.5.3         # vLLM serving
+# deepspeed>=0.14     # DeepSpeed-Inference
+# flexgen             # FlexGen offloading
+
+# Optional: visualisation
+matplotlib>=3.8
+
+# Optional: hardware monitoring (live experiments only)
+# pynvml>=11.0        # NVML Python bindings (NVIDIA GPU)
+# pyamdgpu            # AMD ROCm monitoring (MI250)
+
+# Development
+pytest>=7.4
