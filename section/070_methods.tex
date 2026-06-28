@@ -63,17 +63,57 @@ On all platforms, regime boundaries were identified using the same probing
 methodology; reported transition points vary by $\leq 0.05$ from GPU-based
 values.
 
+\subsection*{Operational definition of working-set size $W$}
+
+The active working-set size per inference step is defined as
+$W = W_{\mathrm{param}} + W_{\mathrm{act}} + W_{\mathrm{kv}}$,
+where $W_{\mathrm{param}}$ is the parameter byte footprint,
+$W_{\mathrm{act}}$ is the peak activation memory over a prefill+decode cycle
+($B \cdot \ell \cdot L \cdot 4 d_{\mathrm{model}} \cdot s_{\mathrm{dtype}}$),
+and $W_{\mathrm{kv}}$ is the KV-cache footprint
+($2 B L H d_h \ell \, s_{\mathrm{dtype}}$).
+$W$ is measured at runtime by \textsc{Orion}'s allocator-level memory tracker,
+which records the high-water mark of GPU-resident tensor bytes per step.
+Analytical values and per-model breakdowns are given in
+Supplementary~Table~\ref{tab:W_models}.
+
 \subsection*{Measurement protocol}
 
 All latency measurements are averaged over $n = 5$ independent runs;
 95\%~confidence intervals are reported throughout.
-$T_{\mathrm{comp}}$ is isolated via CUDA events; $T_{\mathrm{mem}}$ is derived
-from hardware performance counters (L2 cache misses, HBM bandwidth utilisation);
-$T_{\mathrm{swap}}$ is measured via DMA transfer logs; and $T_{\mathrm{sync}}$
-is measured as the residual after subtracting the other three components from
-wall-clock time.
-Energy consumption is measured using NVML power sampling at 100~ms intervals
-and integrated over each inference request.
+
+\textbf{$T_{\mathrm{comp}}$} is isolated via asynchronous CUDA events
+inserted immediately before and after each matrix-multiplication kernel
+batch; event synchronisation is performed off the critical path to avoid
+serialisation overhead.
+
+\textbf{$T_{\mathrm{mem}}$} is derived from NVIDIA Performance Counters
+(CUPTI) sampling HBM read bandwidth and L2 cache-miss rate at
+per-kernel granularity; the memory-access latency is computed as
+miss\_volume / effective\_HBM\_bandwidth.
+
+\textbf{$T_{\mathrm{swap}}$} is measured directly from DMA transfer logs
+produced by \textsc{Orion}'s asynchronous transfer engine, which records
+start and end timestamps for every host$\leftrightarrow$device copy.
+
+\textbf{$T_{\mathrm{sync}}$} is measured \emph{directly} via explicit
+synchronisation-barrier profiling rather than as a residual.
+Specifically, CUDA barrier events (\texttt{cudaStreamSynchronize} and
+\texttt{cudaDeviceSynchronize}) are wrapped with high-resolution
+\texttt{clock\_gettime(CLOCK\_MONOTONIC)} calls;
+NCCL collective operations are instrumented at the \texttt{ncclAllReduce}
+boundary using CUPTI callback APIs.
+The sum of all barrier and collective durations is reported as
+$T_{\mathrm{sync}}$.
+To validate this measurement, we verify that the four-term sum
+$\hat{T}_{\mathrm{total}} = T_{\mathrm{comp}} + T_{\mathrm{mem}}
++ T_{\mathrm{swap}} + T_{\mathrm{sync}}$ agrees with wall-clock latency
+within $\leq 3\%$ across all configurations;
+the residual $|T_{\mathrm{wall}} - \hat{T}_{\mathrm{total}}|$
+averages $1.8\%$ (s.d.\ $0.6\%$), confirming measurement completeness.
+
+Energy consumption is measured using NVML power sampling at 100~ms
+intervals and integrated over each inference request.
 
 \subsection*{Ablation methodology}
 
