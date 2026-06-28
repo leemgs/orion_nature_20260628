@@ -13,7 +13,7 @@ In I/O-limited regimes, physical bandwidth constraints dominate once cross-tier
 transfer approaches sustained limits; any additional coordination overhead is
 additive rather than compensatory.
 This is qualitatively analogous to phase transitions in physical systems, where
-control parameters govern discontinuous changes in dominant behavior---an
+control parameters govern discontinuous changes in dominant behaviour---an
 analogy that motivated our dimensionless-ratio formulation and may extend the
 framework to hierarchical-memory systems beyond AI inference.
 
@@ -62,13 +62,6 @@ accomplishes with 93.4\% accuracy across diverse workloads at $<$0.1~ms cost
 per classification.
 The first question for any memory-bound inference system should be not ``how
 much more coordination?'' but ``in which regime does the system operate?''
-We note, however, that the 93.4\% classification accuracy reported here is an
-in-distribution result: the classifier was trained and evaluated on measurements
-from the same five hardware platforms.
-Generalisation to unseen hardware configurations, novel memory-tier arrangements
-(e.g., CXL-pooled memory), or architectures with qualitatively different
-bandwidth profiles has not been characterised and represents an important
-direction for future validation.
 
 This perspective applies beyond large language models to any workload whose
 active working set cannot fully reside in fast memory---multimodal inference,
@@ -77,14 +70,21 @@ provides a principled foundation for understanding scalability, stability, and
 energy efficiency in increasingly complex memory hierarchies.
 
 Several limitations motivate future work.
+The regime classifier's 93.4\% accuracy is an in-distribution result:
+training and evaluation used measurements from the same five hardware
+platforms.
+Generalisation to unseen hardware configurations, novel memory-tier
+arrangements (e.g., CXL-pooled memory), or architectures with qualitatively
+different bandwidth profiles has not been characterised and is an important
+direction for future validation.
 Large-scale multi-node clusters introduce additional coordination layers that
 may shift or fragment regime boundaries; our 4-node experiments observed
 $\Delta\theta_B \approx +0.05$ but full multi-node characterisation remains
 open.
 Hybrid training--inference pipelines and highly irregular sparse-access patterns
 may exhibit nested regime structures.
-Hysteresis-like latency behavior observed when workloads traverse boundaries in
-both directions suggests \emph{regime memory} driven by nonlinear cache-reuse
+Hysteresis-like latency behaviour observed when workloads traverse boundaries
+in both directions suggests \emph{regime memory} driven by nonlinear cache-reuse
 effects; characterising this theoretically and exploiting it in scheduling is an
 open problem.
 Finally, while the regime framework identifies boundaries analytically, it does

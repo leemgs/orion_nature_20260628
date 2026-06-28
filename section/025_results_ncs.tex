@@ -48,10 +48,10 @@ Figure~\ref{fig:regime_map} illustrates the regime map.
 Transitions between regimes are \emph{abrupt}: as the operating point---set by
 model size, batch size, or available bandwidth---crosses a boundary, the
 primary bottleneck shifts discontinuously, and coordination overhead that was
-previously amortized becomes exposed.
+previously amortised becomes exposed.
 
 
-\subsection{Analytical model and closed-form regime boundaries}
+\subsection{Analytical model and empirical regime boundaries}
 \label{sec:model}
 
 To make regime boundaries explicit, we decompose end-to-end inference latency as
@@ -64,10 +64,10 @@ captures locality-driven memory-access costs, $T_{\mathrm{swap}}$ is cross-tier
 data transfer, and $T_{\mathrm{sync}}$ accounts for synchronization and
 coordination overhead.
 These terms are not independent: reducing one can increase another, yielding
-structural trade-offs that local optimization cannot eliminate.
+structural trade-offs that local optimisation cannot eliminate.
 
 \paragraph{Dimensionless control ratios.}
-We characterize any configuration by two ratios:
+We characterise any configuration by two ratios:
 \begin{equation}
 R_C = \frac{C_{\mathrm{fast}}}{W}, \qquad
 R_B = \frac{B_{\mathrm{slow}} \cdot \Delta t}{D},
@@ -133,25 +133,25 @@ operating points cross regime boundaries.}
 \label{fig:consolidated}
 \end{figure}
 
-Figure~\ref{fig:consolidated} summarizes regime-oriented probe outcomes.
+Figure~\ref{fig:consolidated} summarises regime-oriented probe outcomes.
 Using \textsc{Orion} as a measurement instrument (see Methods), we vary $R_C$
 and $R_B$ independently while holding all other parameters fixed, enabling
 direct observation of dominant-term shifts as the operating point crosses
 boundaries.
 
-\textbf{Capacity-limited behavior.}
+\textbf{Capacity-limited behaviour.}
 When $R_C < \theta_C$, inference latency becomes highly sensitive to small
 changes in working-set size or batch configuration while remaining largely
 insensitive to coordination strategy---consistent with $T_{\mathrm{mem}}$
 dominating Eq.~\eqref{eq:latency_decomp}.
 
-\textbf{Coordination-dominated behavior.}
+\textbf{Coordination-dominated behaviour.}
 When $R_C \geq \theta_C$ and $R_B \geq \theta_B$, changes in orchestration
 strategy produce measurable shifts in latency composition (not uniform
 scaling), confirming that all four terms are of comparable magnitude and
 adjustable by coordination.
 
-\textbf{I/O-limited behavior.}
+\textbf{I/O-limited behaviour.}
 When $R_B < \theta_B$, $T_{\mathrm{swap}}$ dominates; reducing swap depth by
 10\% recovered 14.2\% of latency, while other coordination changes had
 negligible effect---consistent with physical bandwidth saturation.
@@ -160,7 +160,8 @@ negligible effect---consistent with physical bandwidth saturation.
 We measure the sharpness coefficient
 $S = |d\ln T_{\mathrm{total}}/d\ln R|$, with a transition defined as abrupt
 when $S > S^{*} = 2.0$ (a 10\% change in $R$ produces $>$20\% latency change).
-Near $\theta_C$, we measure $S = 4.12 \pm 0.31$ ($n=5$): a 10\% reduction in
+Near $\theta_C$, we measure $S = 4.12 \pm 0.31$
+($n_{\mathrm{sweep}} = 5$, bootstrap 95\,\% CI): a 10\% reduction in
 $R_C$ produces a 41.2\% latency increase.
 Well inside the coordination-dominated regime ($R_C = 0.80$), $S$ drops to
 $0.31 \pm 0.04$, confirming near-zero sensitivity.
@@ -201,7 +202,8 @@ across autoregressive, mixture-of-experts, and vision workloads.
          Platform: NVIDIA A100 (80\,GB), batch size\,=\,8, sequence length\,=\,2048.
          Operating regime: coordination-dominated ($R_C \geq 0.5$, $R_B \geq 0.4$).
          Values: mean\,$\pm$\,95\,\% bootstrap CI over $n_{\mathrm{eff}}\!=\!150$
-         measurement windows.}
+         measurement windows.
+         Energy efficiency normalised to PyTorch\,=\,100.}
 \label{tab:cross-model}
 \renewcommand{\arraystretch}{1.2}
 \footnotesize
@@ -234,13 +236,16 @@ reduction and cuts frame-drop rate from 12\% to 2.5\%.
 
 \begin{table}[t]
 \centering
-\caption{Energy efficiency (throughput per Watt, normalized to PyTorch\,=\,100).
+\caption{Energy efficiency (throughput per Watt, normalised to PyTorch\,=\,100).
          Platform: NVIDIA A100\,(80\,GB); model: Llama-3\,8B; batch\,=\,8;
          sequence length\,=\,2048.
          Power measured via NVML at 100\,ms intervals; coordination-dominated
          regime ($R_C \geq 0.5$, $R_B \geq 0.4$).
          Values: mean\,$\pm$\,95\,\% bootstrap CI over
-         $n_{\mathrm{eff}}\!=\!150$ windows.}
+         $n_{\mathrm{eff}}\!=\!150$ windows.
+         CO$_2$ equivalents use the IEA\,(2024) global average carbon
+         intensity of 494\,gCO$_2$/kWh~\cite{iea2024electricity};
+         grid-mix variability dominates CO$_2$ uncertainty ($\pm$30\,\%).}
 \label{tab:energy}
 \renewcommand{\arraystretch}{1.2}
 \footnotesize
@@ -262,14 +267,9 @@ vLLM~\cite{kwon2023pagedattention}      & $318 \pm 5$ & $7{,}120 \pm 90$ & $112.
 
 Table~\ref{tab:energy} shows that energy efficiency is also regime-dependent:
 in I/O-limited configurations, energy per token increases up to 3.2$\times$
-relative to coordination-aligned settings (42.5\,g~CO$_2$/\,10$^6$\,tokens
-versus 15.8\,g under regime alignment$^\dagger$), indicating that regime
-misalignment is a root cause of energy inefficiency rather than hardware
-limitations alone.
-
-\footnotetext[1]{$^\dagger$CO$_2$ equivalents computed using the IEA\,(2024)
-global average carbon intensity of 494\,gCO$_2$/kWh~\cite{iea2024electricity}.
-Power draw is measured via NVML; uncertainty on CO$_2$ values is dominated by
-grid-mix variability ($\pm$30\,\%) rather than measurement error.}
+relative to coordination-aligned settings (42.5\,g~CO$_2$/10$^6$\,tokens
+versus 15.8\,g under regime alignment; IEA 2024 carbon intensity,
+see Table~\ref{tab:energy} caption), indicating that regime misalignment
+is a root cause of energy inefficiency rather than hardware limitations alone.
 
 \FloatBarrier

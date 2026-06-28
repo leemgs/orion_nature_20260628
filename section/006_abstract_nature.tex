@@ -5,26 +5,25 @@
 %% ============================================================
 
 \abstract{%
-As artificial intelligence models scale beyond fast-memory capacity,
-inference latency is governed by coordination across hierarchical memory
-systems rather than computation alone.
-Here we show that this coordination is not continuously optimizable but
-exhibits intrinsic, regime-dependent limits whose transitions are abrupt.
-Expressing system configuration as two dimensionless ratios---the
-fast-memory residency ratio ($R_C$) and the cross-tier transfer-pressure
-ratio ($R_B$)---we identify three operationally distinct regimes:
-capacity-limited, coordination-dominated, and I/O-limited.
-Within coordination-dominated regimes, orchestration reduces end-to-end
-latency by redistributing costs across computation, locality, transfer,
-and synchronization.
+As AI models exceed accelerator memory, inference latency is governed by
+hierarchical data coordination rather than computation.
+Here we show that this coordination is not continuously optimisable but
+exhibits intrinsic, regime-dependent limits with abrupt transitions.
+Characterising any system by two dimensionless ratios---the fast-memory
+residency ratio ($R_C$) and the transfer-pressure ratio ($R_B$)---we
+identify three operationally distinct regimes: capacity-limited,
+coordination-dominated, and I/O-limited.
+Within coordination-dominated regimes, orchestration redistributes latency
+costs across computation, locality, transfer, and synchronisation.
 Beyond capacity or bandwidth thresholds, the same strategies fail
-predictably, and additional coordination becomes additive overhead.
-We derive closed-form regime boundaries from a minimal multi-tier transfer
-model and validate phase-like transitions across language and vision
-workloads on GPU, TPU, and Inferentia-based systems.
+predictably and become additive overhead.
+We establish structural lower bounds proving transitions are inevitable,
+empirically calibrate boundary values ($\theta_C \approx 0.50$,
+$\theta_B \approx 0.40$) across five hardware platforms, and validate
+phase-like transitions across language and vision workloads on GPU, TPU,
+and Inferentia2 systems.
 These results reframe hierarchical memory optimisation as regime-aware
-design rather than continuous tuning, with implications for any
-memory-bound computing system.
+design, with implications for any memory-bound computing system.
 }
 
 \keywords{hierarchical memory systems, memory orchestration, AI inference,

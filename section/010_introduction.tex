@@ -64,6 +64,12 @@ We make three contributions:
     Predicted transitions are confirmed across language and vision workloads
     on NVIDIA A100, TPU v4, AWS Inferentia2, AMD MI250, and Intel Optane-PMem
     systems, with boundaries consistent to within $\pm 0.05$.
+  \item \textbf{Workload generality.}
+    Regime structure is demonstrated beyond autoregressive LLMs: BLIP2
+    visual question-answering, retrieval-augmented generation (RAG), and
+    edge YOLOv8 deployments all exhibit the same three-regime behaviour,
+    confirming that the framework governs any workload whose working set
+    exceeds fast-memory capacity.
 \end{itemize}
 
 Together, these results reframe hierarchical memory coordination as
