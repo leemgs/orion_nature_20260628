@@ -1,0 +1,31 @@
+\section{Methods}
+\label{sec:methods}
+
+This section describes the experimental methodology and system instrumentation used to validate the regime-dependent principles developed in the main text, rather than to introduce a new optimization technique.
+
+\subsection{ORION: an experimental framework for hierarchical orchestration}
+To experimentally validate regime-dependent behavior in real inference systems, we use \textbf{ORION}, a lightweight framework that coordinates accelerator memory, host memory, and secondary storage as a unified hierarchy. ORION is used here as an \emph{experimental vehicle} rather than as a production system, enabling controlled traversal of the regime space while making coordination, transfer, and synchronization costs measurable.
+
+
+\subsection{Implementation details}
+ORION comprises three main components, reproduced from the attached manuscript materials:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{GPU process allocation} to reduce context initialization overhead and avoid contention-induced stalls.
+  \item \textbf{NUMA-aware memory management} to improve locality and reduce fragmentation-related performance variability.
+  \item \textbf{GPU-tailored swapping mechanisms} that support selective offloading and partial reloads, with asynchronous transfers aligned to coarse-grained blocks.
+\end{itemize}
+
+\subsection{Baselines, datasets, and measurement methodology}
+
+We compare representative orchestration baselines covering CPU offloading, GPU--CPU swapping, KV-cache management, and state-of-the-art inference engines. Table~\ref{tab:baseline_comparison} (reproduced from the attached manuscript materials) summarizes the baselines and their relationship to ORION.
+Unless stated otherwise, experiments are performed on servers equipped with NVIDIA A100 GPUs (80~GB), large host memory, and NVMe storage, using contemporary deep learning software stacks; exact versions and configuration details are retained from the attached manuscript materials. Table~\ref{tab:ablation} reports an ablation study isolating the contributions of major ORION components.
+
+\textbf{Ablation.}
+To verify that the observed regime-dependent behavior is not driven by any single optimization mechanism, we report an ablation study that isolates the contributions of major ORION components, confirming that regime transitions persist even when individual components are disabled.
+
+\textbf{Multi-GPU scaling.}
+To assess whether regime-dependent behavior remains stable under realistic deployment conditions, we evaluate ORION under 4- and 8-GPU configurations, showing that regime boundaries and qualitative trends are preserved as system scale increases.
+
+\vspace{0.5em}
+\vspace{0.5em}
+All results reported in this manuscript are averaged across repeated runs, and figures and tables are drawn directly from the attached manuscript materials to ensure consistency.

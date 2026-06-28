@@ -1,0 +1,250 @@
+% Nature Communications
+% https://www.nature.com/ncomms/submit/how-to-submit
+% https://mts-ncomms.nature.com/cgi-bin/main.plex
+%
+% sn-article.cls (Springer Nature 통합 공식 템플릿) 권장
+% 공식 다운로드 페이지 (Springer Nature Author Services)
+% https://www.springernature.com/gp/authors/campaigns/latex-author-support
+% 직접 템플릿 ZIP 다운로드
+% https://media.springernature.com/full/springer-cms/rest/v1/content/19238648/data/v7
+%
+%
+% 최종 제목	Hierarchical Memory Orchestration Enables Scalable and Efficient Large Language Model Inference
+% 시스템 명칭	MBALL (Memory-Balanced Adaptive Layered Loader)
+% 투고 저널	Nature Communications
+% 적정 분량	10–12 pages / 5,000–6,500 words
+% 수정 강도	중간 (프레이밍 중심, 구조 유지)
+
+%
+% 다운로드 주소(Overleaf)
+% https://www.overleaf.com/latex/templates/springer-nature-latex-template/myxmhdsbzkyd
+
+
+
+%%---------------- IEEEtran template: start ------------------
+
+% \documentclass[9pt,technote]{IEEEtran}
+% \documentclass[journal,10pt,onecolumn,draftclsnofoot,]{IEEEtran}
+%\documentclass[10pt,journal,onecolumn]{IEEEtran}
+%\documentclass[10pt,journal]{IEEEtran}
+%\documentclass[journal]{IEEEtran}
+\documentclass[10pt,conference]{IEEEtran}
+
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. 
+% If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{ifthen}
+
+
+\usepackage{doi}
+
+% ----- Minimal-Consistent experiment reporting helpers -----
+\newcommand{\ntrials}{5}
+\newcommand{\ci}{95\%~CI}
+\newcommand{\hwsetup}{2~$\times$~NVIDIA~A100~(80GB), 512GB DRAM, NVMe~Gen4}
+\newcommand{\swsetup}{PyTorch~2.4, CUDA~12.2, vLLM~\cite{kwon2023pagedattention}~0.5.3}
+\newcommand{\capinfo}{\emph{Means across $n=\ntrials$ runs (\ci). HW: \hwsetup; SW: \swsetup.}}
+% -----------------------------------------------------------
+
+%%---------------- IEEEtran template: end  ------------------- 
+
+%% ------------- ORC ID Template: Start ----------------------
+% https://tex.stackexchange.com/questions/498688/orcid-in-latex-file-of-ieee-trans-in-a-customized-position
+
+\usepackage{scalerel}
+\usepackage{tikz}
+\usetikzlibrary{svg.path}
+
+\definecolor{orcidlogocol}{HTML}{A6CE39}
+\tikzset{
+  orcidlogo/.pic={
+    \fill[orcidlogocol] svg{M256,128c0,70.7-57.3,128-128,128C57.3,256,0,198.7,0,128C0,57.3,57.3,0,128,0C198.7,0,256,57.3,256,128z};
+    \fill[white] svg{M86.3,186.2H70.9V79.1h15.4v48.4V186.2z}
+                 svg{M108.9,79.1h41.6c39.6,0,57,28.3,57,53.6c0,27.5-21.5,53.6-56.8,53.6h-41.8V79.1z M124.3,172.4h24.5c34.9,0,42.9-26.5,42.9-39.7c0-21.5-13.7-39.7-43.7-39.7h-23.7V172.4z}
+                 svg{M88.7,56.8c0,5.5-4.5,10.1-10.1,10.1c-5.6,0-10.1-4.6-10.1-10.1c0-5.6,4.5-10.1,10.1-10.1C84.2,46.7,88.7,51.3,88.7,56.8z};
+  }
+}
+
+\newcommand\orcidicon[1]{\href{https://orcid.org/#1}{\mbox{\scalerel*{
+\begin{tikzpicture}[yscale=-1,transform shape]
+\pic{orcidlogo};
+\end{tikzpicture}
+}{|}}}}
+
+%% ------------- ORC ID Template: End ----------------------
+
+
+ 
+%% ------------- Geunsik Area : Start ----------------------
+
+
+
+% How to hide statements: 
+%   - To enable  tags: \iftrue  and \fi
+%   - To disable tags: \iffalse and \fi
+% How to turn-on (or turn-off) page number:
+%   - To turn-on  the page number: {plain}
+%   - To turn-off the page number: {empty}
+% Usage (Syntax): 
+%   \documentstyle[twocolumn]{article}
+%   \pagestyle{empty}
+%    ...
+%   \maketitle
+%   \thispagestyle{empty}
+
+% How to print the page number at each page 
+%\pagestyle{empty}
+
+
+% How to support Korean language with the 'latexmkrc' file in www.overleaf.com
+% \usepackage{kotex}  % commented for IEEE camera-ready (English)
+
+% How to separate languages (e.g., ko, en) for paper writing
+\usepackage{ifthen} % 조건문 사용
+\newcommand{\lang}{en} % ko 또는 en 으로 설정
+
+
+% 상단 메뉴에서 Menu → Compiler → XeLaTeX (또는 LuaLaTeX) 으로 변경하세요.
+% \usepackage{fontspec}
+% Overleaf에서 IEEEtran.cls + pdfLaTeX → 기본은 Computer Modern
+% IEEE 최종 PDF (출판 버전) → Times New Roman (Times 계열)
+% 
+%\ifthenelse{\equal{\lang}{ko}}{
+%  \setmainhangulfont{NanumGothic}
+%}{\setmainfont{Times New Roman}
+%}
+
+
+
+
+% 익명 처리 여부 (1 = 실명, 0 = 익명)
+\newcommand{\anonymous}{1}
+
+%% To keep strictly tuned whitespace rules among section (e.g., section, subsection, and subsubsection)
+%% for decreasing or increasing the vertical space between section
+\usepackage{titlesec}
+\titlespacing*{\section}{0.80pt}{0.50\baselineskip}{0.20\baselineskip}
+\titlespacing*{\subsection}{0.80pt}{0.50\baselineskip}{0.20\baselineskip}
+\titlespacing*{\subsubsection}{0.80pt}{0.50\baselineskip}{0.20\baselineskip}
+
+%% Reduce vertical space (padding) after figure (a big effect)
+%% Warning: "Text page 7 contains only floats."
+%% https://www.reddit.com/r/LaTeX/comments/b4mipa/how_to_decrease_space_between_paragraph_and/
+\setlength{\textfloatsep}{0.60pt}
+\setlength{\abovecaptionskip}{0.60pt}
+\setlength{\belowcaptionskip}{0.60pt}
+
+
+% How to print date, hour, and minute to maintain the current version of the paper.
+% Append the below statement in the 'abstract' section.
+% For example, write "[Notice] This document was compiled on: \today\ at \currenttime." 
+\usepackage[short,nodayofweek,level,24hr]{datetime}
+
+
+% for pseudo code
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+% # for using a number symbol (\ding{3})
+\usepackage{pifont}
+
+% Text highlight and color (e.g. \hl, \textcolor )
+\usepackage{xcolor,color,soul}
+%\usepackage{soul}
+
+% Hyperlinks to content
+%\usepackage[linktocpage=true]{hyperref}
+%\usepackage{hyperref}
+%\usepackage[hidelinks]{hyperref}
+
+
+\usepackage{xcolor} % 색상 지원
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=red,   % table, figure, equation, section
+    citecolor=red,   % citation
+    urlcolor=red     % URL
+}
+
+
+
+% How to support a code listing
+\usepackage{listings}
+
+% set the default code style
+\lstset{
+    frame=tb, % draw a frame at the top and bottom of the code block
+    tabsize=4, % tab space width
+    showstringspaces=false, % don't mark spaces in strings
+    numbers=left, % display line numbers on the left
+    commentstyle=\color{green}, % comment color
+    keywordstyle=\color{blue}, % keyword color
+    stringstyle=\color{red} % string color
+}
+
+% makecell
+\usepackage{makecell}
+\usepackage{tabu}
+
+\usepackage{tabularx}  % 가로 폭 자동 조절 패키지
+\usepackage{makecell}  % 줄바꿈 지원
+\usepackage{booktabs}  % 더 깔끔한 표 선 (논문용)
+
+\usepackage{float}
+\usepackage[numbers,sort&compress]{natbib}
+
+%% ------------- Geunsik Area : End --------------------------
+
+
+
+%% ----------------- Document area: start --------------------
+% Modify edit the below statements for your paper.
+
+\usepackage{placeins}
+\usepackage{dblfloatfix}
+
+%---- Float placement tuning (reduce whitespace in two-column layout)
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.92}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.86}
+\renewcommand{\dbltopfraction}{0.92}
+\renewcommand{\dblfloatpagefraction}{0.86}
+\flushbottom
+
+\begin{document}
+% \tableofcontents
+
+\input{./section/001_title.tex}
+\input{./section/005_author.tex}
+\input{./section/006_abstract.tex}
+
+\input{./section/008_materials.tex}
+\input{section/010_introduction}
+\input{section/020_regime_principle}
+\input{section/030_transfer_model}
+\input{section/040_experimental_validation}
+\input{section/050_implications}
+\input{section/060_discussion}
+\input{section/070_methods}
+\input{section/080_conclusion}
+\input{section/900_appendix}
+
+\input{section/090_ack.tex}
+\input{section/095_reference.tex} 
+
+% Biographies: Nature Communications에서는 즉시 제거 대상
+% \input{section/099_bib.tex}
+
+\end{document}
+
+%% ----------------- Document area: end  -------------------

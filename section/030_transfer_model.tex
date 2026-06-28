@@ -1,0 +1,91 @@
+\section{A minimal multi-tier transfer model for regime boundaries}
+\label{sec:model}
+
+This section introduces a minimal analytical model that explains why regime boundaries in hierarchical memory systems arise inevitably from capacity and bandwidth constraints, rather than from implementation-specific design choices.
+
+\subsection{Latency decomposition across memory tiers}
+To formalize the regime-dependent behavior described in Section~\ref{sec:regime}, we adopt a minimal transfer model that captures the dominant contributors to inference latency in hierarchical memory systems. Rather than aiming for fine-grained performance prediction, the model is designed to expose the structural constraints that govern regime transitions.
+
+We decompose the end-to-end latency of an inference request as:
+\begin{equation}
+T_{\mathrm{total}} = T_{\mathrm{comp}} + T_{\mathrm{mem}} + T_{\mathrm{swap}} + T_{\mathrm{sync}}.
+\label{eq:latency_decomp}
+\end{equation}
+Here, $T_{\mathrm{comp}}$ denotes accelerator computation time, $T_{\mathrm{mem}}$ captures locality-driven memory access costs within fast and intermediate tiers, $T_{\mathrm{swap}}$ represents cross-tier data transfer between memory levels, and $T_{\mathrm{sync}}$ accounts for synchronization and coordination overheads required to orchestrate execution across tiers.
+
+This decomposition reflects a general property of hierarchical systems: as working sets exceed fast-memory capacity, latency is increasingly shaped by memory access patterns, data movement, and coordination, rather than by computation alone. Crucially, these terms are not independent. Allocation or scheduling that reduces one component can increase another, yielding structural trade-offs that cannot be eliminated through local optimization.
+
+\subsection{Capacity and bandwidth ratios governing regimes}
+To characterize where a system operates within the regime space, we express its configuration in terms of two dimensionless ratios that capture the balance between memory capacity and transfer capability.
+
+The first ratio describes \textbf{capacity balance} between fast and intermediate memory tiers. When intermediate memory can absorb spillover from fast memory, locality can be preserved and coordination overhead remains bounded. When it cannot, frequent eviction and reloading dominate execution, driving the system into capacity-limited behavior.
+
+The second ratio captures \textbf{transfer pressure} across the slowest memory tier. It reflects the relationship between the volume of data moved per request and the sustained bandwidth available for cross-tier transfer. When transfer demand approaches or exceeds physical bandwidth, execution becomes I/O-limited regardless of scheduling or buffering strategies.
+
+Together, these ratios define a system’s \textbf{operating point} in the regime space. Small changes in workload size or system configuration can move the operating point across regime boundaries, triggering abrupt shifts in the dominant latency component.
+
+\subsection{Why orchestration fails outside coordination-dominated regimes}
+The transfer model reveals why regime transitions are intrinsic to hierarchical memory systems. In coordination-dominated regimes, the terms in Eq.~\ref{eq:latency_decomp} are of comparable magnitude, enabling orchestration to trade off costs and overlap computation with data movement. In this regime, reducing redundant transfers or improving locality can yield meaningful improvements.
+
+When a system crosses into a capacity-limited regime, $T_{\mathrm{mem}}$ grows sharply due to insufficient fast-memory residency. Coordination cannot compensate for the absence of locality, and additional orchestration introduces overhead without reducing the dominant term. Likewise, in I/O-limited regimes, $T_{\mathrm{swap}}$ dominates once transfer demand saturates bandwidth. Beyond this point, coordination overhead becomes additive rather than compensatory.
+
+These transitions are not smooth, and they constitute a \emph{negative result} for coordination-centric optimization: because capacity and bandwidth constraints impose hard bounds, modest changes in working-set size or sustained transfer bandwidth can cause discontinuous shifts in the dominant term. Consequently, strategies that are effective within coordination-dominated regimes fail predictably outside analytically identifiable boundaries.
+
+\subsection{Inevitability of discontinuous regime transitions}
+
+\paragraph{Intrinsic inevitability of regime transitions.}
+Consider any hierarchical inference execution on a multi-tier memory system whose end-to-end latency can be decomposed as in
+Eq.~\eqref{eq:latency_decomp}. Let $C_{\mathrm{fast}}$ denote fast-memory capacity, $W$ the active working-set size required for
+effective locality at a given operating point, $B_{\mathrm{slow}}$ the sustained bandwidth of the slowest tier on the critical
+transfer path, and $D$ the data volume that must traverse that path per inference step (including compulsory transfers).
+Independent of the specific orchestration policy, the total latency admits a structural lower bound of the form
+\begin{equation}
+T_{\mathrm{total}} \;\ge\; \alpha\,\frac{W}{C_{\mathrm{fast}}} \;+\; \beta\,\frac{D}{B_{\mathrm{slow}}},
+\label{eq:lower_bound_regime}
+\end{equation}
+where $\alpha,\beta>0$ are platform-dependent constants.
+When either $\frac{C_{\mathrm{fast}}}{W}$ (capacity balance) or $\frac{B_{\mathrm{slow}}}{D}$ (transfer balance) falls below a
+constant threshold, the dominant contributor to $T_{\mathrm{total}}$ must shift abruptly to the corresponding term, and
+additional coordination can only introduce additive overhead through synchronization rather than eliminate the bound.
+
+\emph{Justification.}
+The term $T_{\mathrm{mem}}$ captures locality-driven penalties when the working set cannot maintain residency in fast memory.
+Under standard cache and eviction models, the expected miss rate increases sharply once $W$ approaches or exceeds
+$C_{\mathrm{fast}}$, yielding a lower bound proportional to $W/C_{\mathrm{fast}}$ up to a platform constant.
+Independently, any compulsory cross-tier transfer of volume $D$ across sustained bandwidth $B_{\mathrm{slow}}$ incurs an
+irreducible cost of at least $D/B_{\mathrm{slow}}$.
+These bounds hold regardless of scheduling or overlap: overlap can redistribute visible latency components, but cannot violate
+physical transfer limits or locality constraints once residency fails.
+
+As a result, regime transitions are not merely empirical observations but arise inevitably from the structural properties of
+hierarchical memory systems. Once either capacity or bandwidth constraints dominate, coordination overhead becomes exposed rather
+than amortized, leading to abrupt, phase-like shifts in dominant latency behavior. These transitions can be shifted in
+configuration space by changing physical resources, but cannot be eliminated through orchestration alone.
+
+\subsection{Formal Regime Boundary Derivation}
+To analytically define regime boundaries, we introduce two dimensionless quantities:
+\begin{equation}
+R_C = \frac{C_\text{fast}}{W}, \quad R_B = \frac{B_\text{slow}}{D}
+\end{equation}
+where $C_\text{fast}$ is fast memory capacity, $W$ is the active working set size, $B_\text{slow}$ is sustained bandwidth of the slowest tier, and $D$ is the data transferred per inference step.
+
+We define thresholds $\theta_C \approx 0.5$ and $\theta_B \approx 0.4$, yielding:
+\begin{itemize}
+    \item \textbf{Capacity-limited}: $R_C < \theta_C$
+    \item \textbf{I/O-limited}: $R_B < \theta_B$
+    \item \textbf{Coordination-dominated}: $R_C \geq \theta_C$ and $R_B \geq \theta_B$
+\end{itemize}
+
+These thresholds provide an analytical foundation for the regime map observed in experiments.
+
+\subsection{Formal Regime Boundary Justification}
+To further validate the boundary thresholds $\theta_C$ and $\theta_B$, we derive a structural constraint from latency decomposition. Given that:
+\[
+T_{\text{total}} = T_{\text{comp}} + T_{\text{mem}} + T_{\text{swap}} + T_{\text{sync}},
+\]
+and assuming $T_{\text{mem}} \sim \frac{W}{C_\text{fast}}$ and $T_{\text{swap}} \sim \frac{D}{B_\text{slow}}$, regime transitions occur at critical inflection points where one term begins to dominate over others.
+
+\subsection{Analytical Justification of Regime Thresholds}
+We further formalize the regime boundary conditions using critical inflection analysis of the latency model, yielding thresholds
+$R_C \approx \theta_C$ and $R_B \approx \theta_B$, consistent with the empirical results reported in Section~IV and detailed
+derivations provided in Appendix~A.

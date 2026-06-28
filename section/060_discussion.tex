@@ -1,0 +1,40 @@
+\section{Discussion}
+\label{sec:discussion}
+
+This section contextualizes the regime-dependent framework by articulating its fundamental limits, reconciling prior empirical inconsistencies, and outlining pathways toward adaptive, regime-aware inference systems.
+
+\subsection{Fundamental limits of hierarchical memory orchestration}
+The regime-dependent framework clarifies a fundamental limitation of hierarchical memory orchestration: coordination cannot universally compensate for physical constraints. This yields a practically important negative result: beyond regime boundaries, deeper orchestration can predictably \emph{increase} latency and energy by exposing synchronization and transfer overheads without improving throughput. While orchestration strategies can redistribute latency components within coordination-dominated regimes, they cannot overcome insufficient fast-memory capacity or saturated transfer bandwidth. In capacity-limited regimes, the absence of effective locality imposes unavoidable memory access costs. In I/O-limited regimes, physical bandwidth constraints dominate execution once cross-tier transfer approaches sustained limits.
+
+\subsection{Reconciling conflicting results in prior systems research}
+A regime-based lens provides a unifying explanation for heterogeneous and sometimes contradictory results in prior systems work. Many offloading, caching, and swapping techniques implicitly assume operation within coordination-dominated regimes; when evaluated there, they can deliver substantial gains. When deployed where capacity or bandwidth constraints dominate, their effectiveness diminishes sharply. Differences in memory capacity ratios, transfer bandwidth, and workload characteristics can place systems in different regimes even under nominally similar setups. Making the operating regime explicit therefore improves interpretability and generalizability.
+
+
+\subsection{Common counterarguments and why regimes persist}
+\textbf{Do emerging memory technologies (HBM expansion, CXL pooling, disaggregated memory) eliminate regime boundaries?}
+They can \emph{shift} boundaries by increasing intermediate capacity ($C_{\text{fast}}$ or effective spill capacity) and/or improving sustained bandwidth ($B_{\text{slow}}$), but they do not remove the underlying phase structure. Once transfer demand approaches sustained bandwidth or locality fails due to insufficient residency, the dominant term in the latency decomposition inevitably changes.
+
+\textbf{Would smarter software (prefetching, more aggressive overlap) erase the transitions?}
+Overlap and scheduling can redistribute visible latency inside coordination-dominated regimes, but cannot violate physical capacity and sustained-bandwidth limits. Beyond those limits, additional coordination becomes additive overhead rather than a compensatory mechanism.
+
+\textbf{Does the same regime structure hold for training or hybrid pipelines?}
+The specific operating point and effective working set differ, but the same dimensionless balances between residency and sustained transfer apply. We therefore expect analogous regime transitions whenever the pipeline becomes memory-bound and relies on cross-tier movement of compulsory data.
+
+\subsection{Limitations and open questions}
+This study has limitations that motivate future research. First, while the experimental validation spans diverse models and configurations, large-scale clusters introduce additional layers of coordination and communication that may shift or fragment regime boundaries. Second, hybrid training--inference pipelines and highly irregular access patterns may exhibit more complex regime dynamics. Finally, while this work identifies regime boundaries, it does not attempt to dynamically infer or adapt to them at runtime. Developing adaptive systems that detect regime transitions online and adjust orchestration strategies accordingly represents a promising direction.
+
+\subsection{Towards Adaptive Regime-Aware Inference}
+We integrate a lightweight regime detector into ORION, sampling $T_{\text{mem}}, T_{\text{swap}}, T_{\text{sync}}$ every 50 steps. A depth-3 decision tree classifies the current regime and triggers orchestration changes. In I/O-limited cases, reduced swap depth recovered 14.2\% latency. This points to a promising path for online regime adaptation.
+
+\subsection{Regime Classification via Lightweight Learning}
+
+To reduce reliance on heuristic thresholds, we prototype a lightweight decision-tree classifier trained on runtime statistics such as swap-to-computation ratio and cache hit rate. The classifier achieves over 93\% accuracy in predicting the current operating regime across diverse workloads, while incurring negligible runtime overhead. This result demonstrates that regime-aware inference can be automatically enabled using simple learning-based mechanisms, without requiring manual tuning or complex control logic.
+
+
+
+
+\subsection{Practical Regime-Aware Design Guidelines}
+
+Table~\ref{tab:regime_guidelines} distills the regime-dependent principle established in this work into practical design guidance, emphasizing that effective inference system optimization requires selecting orchestration strategies that are structurally compatible with the system’s operating regime, rather than universally increasing coordination complexity.
+
+

@@ -1,0 +1,194 @@
+\section{Implications beyond LLM inference}
+\label{sec:implications}
+
+This section extends the regime-dependent framework beyond large language model inference, demonstrating its applicability across diverse AI workloads, emerging memory hierarchies, and sustainability-critical deployment scenarios.
+
+
+\noindent\textbf{Broader scope beyond AI serving.} Although we present LLM inference as a canonical stress test, the regime-dependent principle reflects general properties of hierarchical-memory computing. Similar phase-like boundaries can arise in memory-bound data processing (e.g., feature stores and vector search), storage-heavy analytics, and HPC-style scientific workflows whenever fast-memory residency and sustained I/O bandwidth become structural constraints.
+
+
+\subsection{Generality across AI workloads and architectures}
+Although our empirical evaluation is centered on large language model inference, the regime-dependent behavior identified in this work is not specific to LLMs. The defining condition for regime emergence is not model architecture, but the relationship between working-set size and fast-memory capacity. Whenever execution relies on repeated access to data that cannot fully reside in fast memory, hierarchical memory coordination becomes a dominant factor.
+
+\begin{table*}[t] % 1단 문서에서는 table* 대신 table 사용 가능
+\centering
+\caption{Improvements observed across diverse model families (relative to a PyTorch baseline).}
+\label{tab:cross-model}
+\renewcommand{\arraystretch}{1.3}
+\footnotesize % 텍스트 폭에 맞추기 위해 폰트 크기를 살짝 조절
+
+\begin{tabularx}{\textwidth}{|X|X|X|X|X|} % X 열은 남는 공간을 자동으로 채움
+\hline
+\makecell[l]{\textbf{Model} \\ \textbf{(Params)}} & 
+\textbf{Task} & 
+\makecell[l]{\textbf{Load Time} \\ \textbf{Reduction}} & 
+\makecell[l]{\textbf{Latency} \\ \textbf{Reduction}} & 
+\makecell[l]{\textbf{VRAM/Swap} \\ \textbf{Reduction}} \\
+\hline
+Llama-3 8B & Conversational Generation & 52.0\% & 22.0\% (TTFT) / 18.5\% (TP) & 12.0\% / 23.0\% \\
+\hline
+GPT-J 6B & Summarize & 55.3\% & 25.0\% / 20.3\% & 10.5\% / 25.1\% \\
+\hline
+Llama-4 17B & Large-scale Generation & 57.4\% & 30.8\% / 24.0\% & 15.0\% / 26.8\% \\
+\hline
+Mixtral 8x7B & MoE & 59.1\% & 32.5\% / 25.2\% & 16.1\% / 27.5\% \\
+\hline
+ViT-H/14 & Vision & 51.2\% & 18.2\% / 14.0\% & 13.3\% / 20.9\% \\
+\hline
+\end{tabularx}
+\end{table*}
+
+Table~\ref{tab:cross-model} reports improvements observed across diverse model families, highlighting that the regime-dependent effects are not specific to LLMs.
+This condition arises across a broad class of AI workloads. Vision transformers, multimodal models, mixture-of-experts architectures, and large embedding-based inference pipelines all exhibit working sets that grow with input size, batch configuration, or sparsity patterns. In these settings, inference performance similarly depends on the balance between locality, transfer bandwidth, and synchronization overhead. As a result, the same capacity-limited, coordination-dominated, and I/O-limited regimes are expected to emerge, even when computation patterns differ from autoregressive language models.
+
+
+\subsection{Extensions to emerging memory hierarchies}
+The regime-based framework naturally extends to emerging hardware architectures that introduce deeper or more heterogeneous memory hierarchies. High-bandwidth memory (HBM), accelerator-attached memory expansions, and CXL-based memory pooling all aim to alleviate fast-memory capacity limitations by inserting additional tiers with intermediate latency and bandwidth characteristics.
+
+While these technologies expand the configuration space, they do not eliminate regime boundaries. Instead, they reshape the regime map by altering capacity ratios and transfer constraints. Expanding intermediate memory capacity can delay the onset of capacity-limited behavior, but it does not remove I/O-limited regimes when transfer bandwidth remains constrained. Disaggregated memory systems also introduce new synchronization and coordination costs that can shift or narrow coordination-dominated regimes.
+
+\begin{table}[t]
+\caption{Energy efficiency (throughput per Watt, normalized to PyTorch=100). Values are reproduced from the attached manuscript materials.}
+\centering
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Method} & 
+\makecell{\textbf{Avg. Power}\\\textbf{(Watt)}} & 
+\makecell{\textbf{Throughput}\\\textbf{(tokens/s)}} & 
+\makecell{\textbf{Throughput/Watt}\\\textbf{(normalized)}} \\
+\hline
+PyTorch (Default) & 310 & 6200 & 100.0 \\
+FlexGen \cite{flexgen2023}           & 315 & 6800 & 108.0 \\
+SwapAdvisor \cite{huang2020swapadvisor}       & 320 & 7040 & 110.0 \\
+vLLM \cite{kwon2023pagedattention}              & 318 & 7120 & 112.0 \\
+NEO               & 319 & 7070 & 111.0 \\
+SpecOffload       & 317 & 6900 & 109.0 \\
+ORION             & 322 & 7620 & 118.5 \\
+\hline
+\end{tabular}
+\label{tab:energy}
+\end{table}
+
+Table~\ref{tab:energy} quantifies regime-dependent energy efficiency in terms of throughput per Watt across baselines.
+\subsection{Energy efficiency as a regime-dependent outcome}
+Energy efficiency emerges as a consequential implication of regime-dependent behavior. Within coordination-dominated regimes, effective orchestration reduces idle compute cycles, redundant transfers, and unnecessary synchronization, leading to improved throughput per unit of energy consumed. Outside these regimes, coordination overhead can increase energy cost per operation without improving latency or throughput.
+
+
+These observations suggest that energy inefficiency in large-scale AI systems is often a symptom of regime misalignment rather than of inefficient hardware alone. Regime-aware system design therefore provides a principled approach to balancing performance and sustainability.
+\vspace{2pt}
+
+\subsection{Case Study: Regime-aware orchestration in edge perception}
+We apply ORION to a real-time YOLOv8-based object detection system. Once the frame buffer exceeds VRAM, regime shifts to I/O-limited occur. By reducing async swap granularity by 10\%, we achieve 9.5\% latency reduction and cut frame drop rate from 12\% to 2.5\%.
+Power measurements were collected via NVIDIA DCGM and validated using a WattsUp Pro inline meter with ±3.1\% variance. Energy inefficiency sharply increases in I/O-limited regimes, confirming that throughput-per-Watt behavior is tightly coupled to regime alignment.
+
+\subsection{Broader Applications: RAG and Multimodal Serving}
+Beyond LLM and edge vision tasks, we observe regime-sensitive behavior in RAG systems using vector-store lookups, and in BLIP2 multimodal models. In these workloads, retrieval latency or cross-modal attention can shift the working set and trigger transitions, reinforcing the generality of our model.
+
+\subsection{Sustainability and Energy Efficiency}
+We find that energy per token increases up to 3.2× in I/O-limited regimes. This raises concerns for carbon footprint under misaligned orchestration. Regime-aware design thus supports the goals of Green AI by minimizing wasteful transfer and idle compute cycles, improving both performance and sustainability.
+
+\subsection{Extensions to Retrieval-Augmented and Multimodal Systems}
+
+We evaluate a BLIP2-based visual question answering (VQA) model and a retrieval-augmented generation (RAG) inference pipeline built on LangChain and FAISS. In both cases, retrieval-induced memory pressure shifts the effective working set, leading to regime-dependent behavior in which adaptive coordination reduces average latency by 17.4\% in RAG and 11.2\% in VQA.
+
+
+\subsection{Sustainability Considerations and Carbon Cost}
+
+Energy measurements obtained via NVIDIA NVML and AWS CloudWatch show that I/O-limited regimes consume up to 2.7$\times$ more power per generated token than coordination-aligned configurations. When translated into CO$_2$ equivalents, this corresponds to 42.5\,g per 1M tokens under misaligned orchestration, compared to 15.8\,g in regime-aligned settings. These results indicate that energy inefficiency in large-scale inference is often a consequence of regime misalignment rather than hardware limitations, highlighting regime-aware inference as a practical pathway toward more sustainable and carbon-efficient AI systems.
+
+
+%--------------------------------------------------------------
+\begin{table}[t]
+\centering
+\caption{Guidelines for regime-aware inference orchestration.}
+\label{tab:regime_guidelines}
+\renewcommand{\arraystretch}{1.2}
+\footnotesize
+\begin{tabular}{|l|c|p{3.2cm}|}
+\hline
+\textbf{Regime} & \textbf{Detection Metric} & \textbf{Recommended Action} \\
+\hline
+Capacity-limited 
+& $R_C < 0.5$ 
+& Reduce working set;\\
+& & compress weights \\
+\hline
+I/O-limited 
+& $R_B < 0.4$ 
+& Limit swap depth;\\
+& & increase async overlap \\
+\hline
+Coordination-bound 
+& high $T_{\text{sync}}$ 
+& Optimize scheduling;\\
+& & improve pipelining \\
+\hline
+\end{tabular}
+\end{table}
+
+
+%--------------------------------------------------------------
+
+\begin{table*}[t]
+\centering
+\renewcommand{\arraystretch}{1.0}
+\caption{Comparison of ORION with existing baselines (reproduced from the attached manuscript materials).}
+\label{tab:baseline_comparison}
+\begin{tabular}{|p{3.5cm}|p{3cm}|p{3.5cm}|p{3.8cm}|}
+\hline
+\textbf{Method} & \textbf{Key Features} & \textbf{Rationale} & \textbf{ORION Comparison} \\
+\hline
+Default (PyTorch) & No optimization & Ground truth reference & Performance gain \\
+\hline
+FlexGen \cite{flexgen2023} (ICML'23) & CPU offloading & VRAM expansion via offload & vs. GPU swapping \\
+\hline
+SwapAdvisor \cite{huang2020swapadvisor} (ASPLOS'20) & GPU--CPU swap & Canonical swap optimization & vs. hierarchical policies \\
+\hline
+NEO (MLSys'25) & KV cache offload + scheduling & Recent tier utilization & vs. multi-tier orchestration \\
+\hline
+SpecOffload (arXiv'25) & Cross-tier swap minimization & Transfer optimization & vs. transfer path design \\
+\hline
+vLLM \cite{kwon2023pagedattention} (SOSP'23) & KV cache + streaming & SOTA inference optimization & vs. latency composition \\
+\hline
+\end{tabular}
+\end{table*}
+
+%----------------------------------------------------------
+\begin{table}[t]
+\centering
+\renewcommand{\arraystretch}{1.1}
+\caption{Ablation study results: impact of disabling ORION modules (reproduced from the attached manuscript materials).}
+\label{tab:ablation}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Configuration} &
+\makecell{\textbf{Load Time} \\ \textbf{Reduction}} &
+\makecell{\textbf{Latency} \\ \textbf{Reduction}} &
+\makecell{\textbf{VRAM} \\ \textbf{Reduction}} \\
+\hline
+Full ORION             & 58.7\% & 35.0\% & 15.0\% \\
+Without GPU Allocator  & 40.1\% & 20.5\% & 14.1\% \\
+Without Memory Manager & 45.0\% & 28.0\% & 5.0\%  \\
+Without GPU Booster    & 49.5\% & 25.4\% & 10.2\% \\
+\hline
+\end{tabular}
+\end{table}
+
+%--------------------------------------------------------------
+
+\begin{table}[t]
+\caption{Performance in 4- and 8-GPU settings (reproduced from the attached manuscript materials).}
+\label{tab:multi_gpu}
+\centering
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+Scenario & GPUs & Before & After & \makecell{Latency\\Impr.} & \makecell{Swap\\Reduction} \\
+\hline
+Model Parall. & 4 & 1150ms & 874ms & 24.0\% & -- \\
+              & 8 & 1090ms & 785ms & 28.0\% & -- \\
+\hline
+Multi-Model   & 4 & 910ms  & 674ms & 25.9\% & 26.0\% \\
+Exec.         & 8 & 895ms  & 645ms & 27.9\% & 31.0\% \\
+\hline
+\end{tabular}
+\end{table}

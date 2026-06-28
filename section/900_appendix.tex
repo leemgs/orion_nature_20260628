@@ -1,0 +1,53 @@
+\appendix
+\section{Analytical Justification of Regime Thresholds}
+\label{app:regime}
+
+This appendix provides an analytical justification for the regime thresholds
+$R_C \approx \theta_C$ and $R_B \approx \theta_B$ introduced in the main text.
+Our goal is not to derive exact constants, which are inherently platform- and
+implementation-dependent, but to show that the existence of critical inflection
+points is structurally inevitable in hierarchical memory systems.
+
+\subsection{Latency lower bounds in hierarchical memory systems}
+We begin from the latency decomposition used in the main text:
+\begin{equation}
+T_{\text{total}} = T_{\text{comp}} + T_{\text{mem}} + T_{\text{swap}} + T_{\text{sync}}.
+\end{equation}
+When the active working set of size $W$ exceeds fast-memory capacity $C_{\text{fast}}$,
+locality-driven access costs impose a lower bound
+$T_{\text{mem}} \gtrsim \alpha \, W / C_{\text{fast}}$, where $\alpha > 0$ captures
+platform-dependent miss penalties. Independently, any compulsory cross-tier transfer
+of data volume $D$ across the slowest tier with sustained bandwidth $B_{\text{slow}}$
+incurs an irreducible cost $T_{\text{swap}} \gtrsim \beta \, D / B_{\text{slow}}$.
+
+These bounds hold regardless of scheduling or overlap: while overlap can hide portions
+of transfer latency, it cannot violate physical bandwidth or residency constraints.
+
+\subsection{Dimensionless ratios and inflection points}
+Introducing the dimensionless ratios
+\begin{equation}
+R_C = \frac{C_{\text{fast}}}{W}, \quad
+R_B = \frac{B_{\text{slow}}}{D},
+\end{equation}
+we observe that when either $R_C$ or $R_B$ falls below an $\mathcal{O}(1)$ constant,
+the corresponding lower-bound term dominates $T_{\text{total}}$.
+At these points, coordination and synchronization overheads transition from being
+amortizable to additive, producing an abrupt change in the dominant latency component.
+
+This inflection behavior explains why regime transitions are discontinuous rather than
+gradual. Small changes in workload size, batch configuration, or sustained bandwidth
+can move the operating point across a threshold where locality or transfer constraints
+become dominant.
+
+\subsection{Interpretation of threshold values}
+The specific threshold values $\theta_C \approx 0.5$ and $\theta_B \approx 0.4$ reported
+in the main text reflect empirical operating points at which the lower-bound terms
+begin to dominate in our experimental platforms. While these numerical values are not
+universal constants, their order and existence are robust: any hierarchical memory
+system must exhibit similar inflection points when capacity or bandwidth constraints
+are approached.
+
+Thus, the regime thresholds should be interpreted as structural boundaries induced by
+physical constraints, not as tunable parameters. This analytical perspective supports
+the central claim of this work that regime-dependent behavior is an intrinsic property
+of hierarchical memory orchestration.
