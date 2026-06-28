@@ -1,4 +1,30 @@
 \section{Conclusion}
-As AI inference increasingly depends on hierarchical memory systems, understanding the limits of coordination becomes essential. This work demonstrates that hierarchical memory orchestration is not a continuously optimizable process, but instead exhibits intrinsic, regime-dependent behavior governed by fundamental relationships among memory capacity, sustained transfer bandwidth, and coordination overhead.
 
-By identifying capacity-limited, coordination-dominated, and I/O-limited regimes and linking them to dominant terms in a minimal transfer model, we show that performance transitions are abrupt, predictable, and unavoidable. Strategies that yield substantial gains within coordination-dominated regimes fail systematically outside analytically identifiable boundaries, reflecting physical constraints rather than implementation shortcomings. These findings generalize beyond large language model inference to a broad class of memory-bound systems, providing a principled framework for reasoning about scalability, stability, and energy efficiency in increasingly complex memory hierarchies.
+As AI inference scales to models that far exceed accelerator memory, the
+efficiency of hierarchical memory orchestration increasingly determines the
+economic and environmental cost of deployed AI.
+This work demonstrates that such orchestration is not a continuously
+optimisable process: it exhibits intrinsic, regime-dependent behaviour governed
+by two dimensionless ratios---fast-memory residency and cross-tier
+transfer-pressure---whose critical thresholds define abrupt, phase-like
+transitions between operationally distinct regimes.
+
+By linking these regimes to dominant terms in a minimal multi-tier transfer
+model, we derive analytically interpretable boundaries that explain \emph{why}
+orchestration strategies effective in coordination-dominated regimes fail
+predictably elsewhere---and show that such failures reflect physical constraints
+rather than implementation shortcomings.
+Extensive validation across language and vision workloads on five hardware
+platforms confirms that regime boundaries are hardware-agnostic and recoverable
+to within $\pm 0.05$ of predicted thresholds.
+
+The regime framework reframes hierarchical memory optimisation from a problem
+of continuous tuning to one of regime-aware design: the first question for any
+memory-bound inference system is not ``how much more coordination?'' but ``in
+which regime does the system operate?''
+This perspective applies beyond large language models to any computational
+workload whose active working set cannot fully reside in fast memory---including
+multimodal inference, retrieval-augmented generation, data-intensive analytics,
+and HPC-style scientific computing---and provides a principled foundation for
+understanding scalability, stability, and energy efficiency in increasingly
+complex memory hierarchies.

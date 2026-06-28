@@ -1,12 +1,33 @@
 %% ============================================================
-%%  Abstract & Keywords — sn-jnl format
-%%  Nature: abstract is plain paragraph, keywords via \keywords{}
+%%  Abstract & Keywords — sn-jnl / Nature Computational Science
+%%  Target length: 150–200 words (NCS guideline)
+%%  Style: "Here we show..." declarative opening
 %% ============================================================
 
-\abstract{
-As artificial intelligence models scale beyond fast-memory capacity, inference latency is increasingly governed by coordination across hierarchical memory systems rather than computation alone. Here we show that such coordination is not continuously optimizable, but instead exhibits intrinsic, regime-dependent limits. We identify three operational regimes---capacity-limited, coordination-dominated, and I/O-limited---defined by dimensionless balances between fast-memory residency and sustained cross-tier transfer pressure, and show that transitions between regimes are abrupt rather than gradual.
-
-Using a minimal multi-tier transfer model, we derive analytically interpretable regime boundaries that explain why orchestration strategies effective in coordination-dominated regimes fail predictably once capacity or bandwidth limits are crossed. Extensive experiments across language and vision workloads and diverse hardware platforms confirm these phase-like transitions and their alignment with model predictions. Together, these results establish regime-dependent orchestration as a general principle for memory-bound AI inference and other hierarchical-memory systems, reframing optimization as a problem of regime-aware design rather than continuous tuning.
+\abstract{%
+As artificial intelligence models scale beyond fast-memory capacity, inference
+latency is increasingly governed by coordination across hierarchical memory
+systems rather than computation alone. Here we show that this coordination
+is not continuously optimizable but instead exhibits intrinsic,
+regime-dependent limits whose transitions are abrupt rather than gradual.
+By expressing system configuration as two dimensionless ratios---the
+fast-memory residency ratio and the cross-tier transfer-pressure ratio---we
+identify three operationally distinct regimes: capacity-limited,
+coordination-dominated, and I/O-limited. Within coordination-dominated
+regimes, orchestration strategies reduce end-to-end latency by redistributing
+costs across computation, locality, transfer, and synchronization. Once either
+capacity or bandwidth constraints are crossed, however, the same strategies
+fail predictably, and additional coordination becomes additive overhead rather
+than a compensatory mechanism. We derive analytically interpretable regime
+boundaries from a minimal multi-tier transfer model and validate predicted
+phase-like transitions across language and vision workloads on diverse hardware
+platforms, including GPU, TPU, and Inferentia-based systems. The results
+establish regime-dependent orchestration as a general principle governing
+memory-bound AI inference and other hierarchical-memory computing systems,
+reframing optimization as a problem of regime-aware design rather than
+continuous tuning.
 }
 
-\keywords{large language models, hierarchical memory systems, memory orchestration, inference optimization, regime-dependent behaviour, phase transitions}
+\keywords{hierarchical memory systems, memory orchestration, AI inference,
+phase transitions, regime-dependent behaviour, large language models,
+computational systems}
