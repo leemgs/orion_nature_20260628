@@ -13,3 +13,6 @@
 __pycache__/
 *.pyc
 *.pyo
+
+# PPTX binaries (encoded as .b64 for proxy compatibility)
+ppt/*.pptx
