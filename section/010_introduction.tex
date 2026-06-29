@@ -6,32 +6,10 @@ from arithmetic throughput to \emph{data coordination}.
 When model weights, activations, and key--value (KV) caches exceed accelerator
 memory, inference latency is governed less by compute and more by how efficiently
 execution coordinates data movement across a hierarchical memory system spanning
-GPU Video RAM (VRAM), host Dynamic RAM (DRAM), and Non-Volatile Memory Express (NVMe)
+device memory, host memory, and secondary
 storage~\cite{ma2026inference,gholami2024memorywall}.
 
-This shift reaches industrial informatics first, where inference sits inside
-production rather than in a research lab: digital twin synchronization,
-predictive maintenance over Industrial Internet of Things (IIoT) sensor streams,
-and real-time inspection on the line.
-These are closed-loop cyber--physical systems (CPS), and the inference engine
-must be not merely fast on average but predictably fast, scan-cycle aligned,
-and within the energy envelope whenever the line runs.
-Industrial workloads also misbehave on demand---an anomalous sensor triggers
-a burst, several models contend for one accelerator, and a
-service-level agreement (SLA) cannot be missed.
-Bounded response times must align with industrial real-time standards:
-Time-Sensitive Networking (TSN) windows and the cyclic Programmable Logic
-Controller (PLC) execution semantics of IEC~61131-3.
-When inference sits inside the control loop, it must finish within a reserved
-sub-window of the scan cycle, or the input--logic--output ordering breaks down.
-Latency here is a safety question, not only a quality-of-service one.
-The 2\,ms budget used in our evaluation targets bounded
-warm-state inference (scoring, short-token continuation), not
-autoregressive generation of a 17B model.
-Determinism and long-running stability are therefore hard requirements, not
-nice-to-haves.
-
-This shift also carries pressing economic and environmental stakes.
+This shift carries pressing economic and environmental stakes.
 Once a model is trained, the recurring cost of \emph{serving} it dominates its
 lifetime resource footprint.
 Hardware analyses identify memory capacity, bandwidth, and interconnect
@@ -45,24 +23,15 @@ intensity~\cite{iea2024electricity}.
 Characterising the \emph{intrinsic limits} of memory orchestration is therefore
 a prerequisite for the financial and energy viability of inference-driven AI.
 
-Coordinating memory aggressively is surprisingly easy to do badly:
-the same offloading or caching policy can speed up one configuration and
-slow down another.
 Existing systems reduce memory pressure via CPU/NVMe
 offloading~\cite{flexgen2023,aminabadi2022deepspeedinference},
 GPU--CPU swapping~\cite{huang2020swapadvisor},
 and KV-cache management~\cite{kwon2023pagedattention}.
 These techniques deliver substantial gains in some configurations yet show
 diminishing returns---or even performance inversion---in others.
-Most prior work attacks the problem one direction at a time: model-level work
-(quantization, pruning) shrinks the footprint; system-level work (CPU/GPU
-offloading, caching) shuffles data between tiers.
-Recent papers in IEEE Transactions on Industrial Informatics study resource
-allocation, cloud--edge orchestration, and latency-aware scheduling, but reason
-at the network layer or about distributed task placement and treat each node's
-memory as a black box~\cite{tao2019digital,cao2021survey,chen2021deep,wu2021accuracy,lu2021communication,chekired2018industrial,deng2020dynamical}.
-We open that box, modeling how VRAM, DRAM, and NVMe interact inside one serving
-node and characterizing cross-tier transfer formally rather than empirically.
+Prior work explains this heterogeneity through workload-specific factors
+(model size, batch size, hardware topology), without a unifying framework that
+predicts \emph{when} and \emph{why} orchestration fails.
 This raises a fundamental question: \emph{Is hierarchical memory orchestration
 a continuously optimisable problem, or does it admit intrinsic boundaries beyond
 which additional coordination cannot improve---and can worsen---end-to-end
@@ -74,9 +43,9 @@ compute/memory balance for a fixed workload on static hardware, our framework
 characterises a hierarchical memory system under \emph{dynamic} orchestration
 where the dominant bottleneck itself shifts as operating conditions change.
 Multi-tier inference systems exhibit \emph{phase-like} operational regimes
-governed by two dimensionless ratios: the capacity ratio
-$\alpha = C_{\mathrm{DRAM}}/C_{\mathrm{VRAM}}$ and the I/O pressure ratio
-$\beta = \Delta_{\mathrm{swap}} / [B_{\mathrm{NVMe}}(T_{\mathrm{comp}} + T_{\mathrm{mem}})]$.
+governed by two dimensionless ratios: the fast-memory residency ratio
+$R_C = C_{\mathrm{fast}}/W$ and the transfer-pressure ratio
+$R_B = B_{\mathrm{slow}} \cdot \Delta t / D$.
 Transitions between regimes are \emph{abrupt}: modest changes in model size,
 batch size, or bandwidth shift the dominant latency contributor
 discontinuously---analogous to a material crossing a phase boundary when a
@@ -88,31 +57,27 @@ This regime structure is not LLM-specific; it governs any workload whose active
 working set cannot fully reside in fast memory, including vision inference,
 retrieval-augmented generation (RAG), and HPC-style scientific workflows.
 
-We make five contributions:
+We make four contributions:
 \begin{itemize}
-  \item \textbf{Regime-aware analytical model.}
-    A multi-tier latency decomposition with explicit boundary conditions that
-    distinguish capacity-limited, I/O-limited, and coordination-dominated
-    regimes for industrial AI infrastructure, together with closed-form
-    prediction formulas for both thresholds: $\theta_C = 0.50$ follows
-    analytically from the majority-eviction condition (hardware-independent),
-    and $\theta_B = R_B^{\mathrm{sat}} \times (1 + \alpha_{\mathrm{wb}} + \alpha_q)$
+  \item \textbf{Regime-dependent principle.}
+    We find empirically and analytically that multi-tier inference systems
+    exhibit three intrinsic operational regimes---capacity-limited,
+    coordination-dominated, and I/O-limited---separated by abrupt,
+    phase-like transitions, and that strategy rankings invert across
+    regime boundaries.
+  \item \textbf{Minimal analytical model.}
+    A structural lower bound on inference latency establishing that regime
+    transitions are inevitable, together with closed-form prediction formulas
+    for both thresholds: $\theta_C = 0.50$ follows analytically from the
+    majority-eviction condition (hardware-independent), and
+    $\theta_B = R_B^{\mathrm{sat}} \times (1 + \alpha_{\mathrm{wb}} + \alpha_q)$
     is predictable from three hardware measurements obtainable in a 10-minute
     profiling session---enabling pre-deployment threshold estimation without
     exhaustive regime sweeps.
-  \item \textbf{Energy--latency coupling analysis.}
-    A direct analytical link between cross-tier transfer dynamics and
-    throughput-per-watt under sustained SLA constraints, showing that energy
-    per token increases up to $3.2\times$ in I/O-limited regimes.
-  \item \textbf{Lightweight multi-tier orchestration.}
-    The ORION design and implementation, with Non-Uniform Memory Access
-    (NUMA)-aware and swap-aware regime control across VRAM, DRAM, and NVMe,
-    comprising three modules: GPU Process Allocator, Task Memory Manager,
-    and GPU Booster with swap support.
-  \item \textbf{Industrial-scale validation.}
-    Long-running workloads (72-hour stress tests) showing better SLA stability,
-    energy efficiency, and robustness than strong baselines, with timing
-    violation rates meeting IEC~61508 SIL-2 compliance.
+  \item \textbf{Multi-platform validation.}
+    Predicted transitions are confirmed across language and vision workloads
+    on NVIDIA A100, TPU v4, AWS Inferentia2, AMD MI250, and Intel Optane-PMem
+    systems, with boundaries consistent to within $\pm 0.05$.
   \item \textbf{Workload generality.}
     Regime structure is demonstrated beyond autoregressive LLMs: BLIP2
     visual question-answering, retrieval-augmented generation (RAG), and
@@ -122,10 +87,7 @@ We make five contributions:
 \end{itemize}
 
 Together, these results reframe hierarchical memory coordination as
-\emph{regime-aware design} rather than continuous tuning, establishing that
-hierarchical memory inside an inference node is regime-dependent in a way
-that can be written down formally---and once it is, the engineering problem
-becomes tractable.
+\emph{regime-aware design} rather than continuous tuning.
 To illustrate the framework's practical accessibility, consider Llama-3\,8B at
 batch\,=\,8 on a server with 80\,GB HBM and 16.1\,GB/s PCIe bandwidth:
 $W = 41.8$\,GB gives $R_C = 80/41.8 = 1.91$ (fully capacity-compliant,
