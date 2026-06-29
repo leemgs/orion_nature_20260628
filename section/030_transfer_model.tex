@@ -62,28 +62,58 @@ hierarchical memory systems. Once either capacity or bandwidth constraints domin
 than amortized, leading to abrupt, phase-like shifts in dominant latency behavior. These transitions can be shifted in
 configuration space by changing physical resources, but cannot be eliminated through orchestration alone.
 
-\subsection{Formal Regime Boundary Derivation}
-To analytically define regime boundaries, we introduce two dimensionless quantities:
+\subsection{Capacity Ratio and Critical Threshold}
+Let $W(t)$ stand for the instantaneous working-set size per inference step, and let $C_{\mathrm{agg}} = C_{\mathrm{VRAM}} + C_{\mathrm{DRAM}}$ be the aggregate fast-memory capacity. Capacity-induced swapping kicks in when $W(t) > C_{\mathrm{agg}}$. The regime boundary follows from the equality $W^* = C_{\mathrm{VRAM}} + C_{\mathrm{DRAM}}$, where $W^*$ is the critical working set that separates feasible in-memory execution from execution that must trigger swap. With the capacity ratio
 \begin{equation}
-R_C = \frac{C_\text{fast}}{W}, \quad R_B = \frac{B_\text{slow}}{D}
+\alpha = \frac{C_{\mathrm{DRAM}}}{C_{\mathrm{VRAM}}},
+\label{eq:alpha}
 \end{equation}
-where $C_\text{fast}$ is fast memory capacity, $W$ is the active working set size, $B_\text{slow}$ is sustained bandwidth of the slowest tier, and $D$ is the data transferred per inference step.
+this rewrites as
+\begin{equation}
+\alpha_{\mathrm{critical}} = \frac{W^*}{C_{\mathrm{VRAM}}} - 1.
+\label{eq:alpha_critical}
+\end{equation}
+Hence $\alpha < \alpha_{\mathrm{critical}}$ forces swap amplification---this is the formal statement of the capacity-limited regime. For $\alpha < \alpha_{\mathrm{critical}}$, $\partial T_{\mathrm{total}}/\partial C_{\mathrm{DRAM}} < 0$, which is what we mean by capacity-dominated latency. Past the boundary, adding more DRAM brings diminishing returns.
 
-We define thresholds $\theta_C \approx 0.5$ and $\theta_B \approx 0.4$, yielding:
+\subsection{I/O Pressure Ratio and Saturation Boundary}
+The I/O pressure ratio is
+\begin{equation}
+\beta = \frac{\Delta_{\mathrm{swap}}}{B_{\mathrm{NVMe}}(T_{\mathrm{comp}} + T_{\mathrm{mem}})},
+\label{eq:beta}
+\end{equation}
+with the regime boundary at $\beta = 1$. When $\beta > 1$, no amount of additional coordination can reduce total latency---bandwidth saturation is the hard ceiling.
+
+We also define the dimensionless quantities $R_C = C_{\mathrm{fast}}/W$ and $R_B = B_{\mathrm{slow}} \cdot \Delta t / D$ for operational regime classification with thresholds $\theta_C \approx 0.5$ and $\theta_B \approx 0.4$:
 \begin{itemize}
-    \item \textbf{Capacity-limited}: $R_C < \theta_C$
-    \item \textbf{I/O-limited}: $R_B < \theta_B$
-    \item \textbf{Coordination-dominated}: $R_C \geq \theta_C$ and $R_B \geq \theta_B$
+    \item \textbf{Capacity-limited}: $R_C < \theta_C$ (equivalently, $\alpha < \alpha_{\mathrm{critical}}$)
+    \item \textbf{I/O-limited}: $R_B < \theta_B$ (equivalently, $\beta \geq 1$)
+    \item \textbf{Coordination-dominated}: $R_C \geq \theta_C$ and $R_B \geq \theta_B$ (equivalently, $\alpha \geq \alpha_{\mathrm{critical}}$ and $\beta < 1$)
 \end{itemize}
 
-These thresholds provide an analytical foundation for the regime map observed in experiments.
+\subsection{Formal Regime Partition and Stability Theorems}
 
-\subsection{Formal Regime Boundary Justification}
-To further validate the boundary thresholds $\theta_C$ and $\theta_B$, we derive a structural constraint from latency decomposition. Given that:
-\[
-T_{\text{total}} = T_{\text{comp}} + T_{\text{mem}} + T_{\text{swap}} + T_{\text{sync}},
-\]
-and assuming $T_{\text{mem}} \sim \frac{W}{C_\text{fast}}$ and $T_{\text{swap}} \sim \frac{D}{B_\text{slow}}$, regime transitions occur at critical inflection points where one term begins to dominate over others.
+\textbf{Lemma 1 (Capacity Boundary).} If $W(t) > C_{\mathrm{VRAM}} + C_{\mathrm{DRAM}}$, then $\Delta_{\mathrm{swap}} > 0$ and $\alpha < \alpha_{\mathrm{critical}}$, so the system is capacity-limited. \emph{Proof.} Equations~\eqref{eq:latency_decomp} and the critical working-set equality together give that $W(t) > W^*$ implies $\Delta_{\mathrm{swap}} > 0$, which in turn yields $\partial T_{\mathrm{total}}/\partial C_{\mathrm{DRAM}} < 0$. Latency is therefore capacity-dominated. $\square$
+
+\textbf{Lemma 2 (I/O Boundary).} If $\beta \geq 1$, then $T_{\mathrm{swap}} \geq T_{\mathrm{comp}} + T_{\mathrm{mem}}$, which is the I/O-limited regime. \emph{Proof.} Follows directly from Eqs.~\eqref{eq:beta} and~\eqref{eq:latency_decomp}. $\square$
+
+\textbf{Theorem 1 (Regime Partition).} The system is coordination-dominated iff $\alpha \geq \alpha_{\mathrm{critical}}$ and $\beta < 1$, in which case $\partial^2 T_{\mathrm{total}}/\partial\alpha^2 > 0$. \emph{Proof.} (Necessity.) Assume coordination-dominated. By definition $\Delta_{\mathrm{swap}} = 0$, so $W(t) \leq C_{\mathrm{VRAM}} + C_{\mathrm{DRAM}}$, giving $\alpha \geq \alpha_{\mathrm{critical}}$. Also, $\Delta_{\mathrm{swap}} = 0$ yields $\beta = 0 < 1$. (Sufficiency.) Assume $\alpha \geq \alpha_{\mathrm{critical}}$ and $\beta < 1$. Then $C_{\mathrm{VRAM}} + C_{\mathrm{DRAM}} \geq W^*$; for every $W(t) \leq W^*$, $\Delta_{\mathrm{swap}} = 0$ and latency reduces to $T_{\mathrm{total}} = T_{\mathrm{comp}} + T_{\mathrm{mem}} + T_{\mathrm{sync}}$. (Convexity.) The boundary at $\alpha = \alpha_{\mathrm{critical}}$ forms a convex kink in the effective latency curve; the coordination-dominated operating region begins only after capacity-induced swapping has been suppressed. $\square$
+
+\textbf{Theorem 2 (Long-Term Stability).} Under bounded $\Delta_{\mathrm{swap}}$ and $\beta < 1$, some finite $\epsilon$ exists such that $\limsup_{t\to\infty} \mathrm{Var}(T_{\mathrm{total}}(t)) \leq \epsilon$. \emph{Proof.} With $\beta < 1$, we have $T_{\mathrm{swap}} \leq \eta(T_{\mathrm{comp}} + T_{\mathrm{mem}})$ for some $\eta \in (0,1)$. Each term has a finite second moment, so $\sup_t \mathrm{Var}(T_{\mathrm{total}}(t)) < \epsilon$ for some finite $\epsilon$. $\square$
+
+\subsection{Industrial Control-Loop Compliance}
+For PLC-driven control loops compliant with IEC~61131-3, execution is periodic with scan cycle $T_{\mathrm{scan}}$, and inference must satisfy
+\begin{equation}
+T_{\mathrm{infer}} \leq T_{\mathrm{budget}} \leq T_{\mathrm{scan}}.
+\label{eq:wcet}
+\end{equation}
+Since $T_{\mathrm{infer}} = T_{\mathrm{total}}$ and $T_{\mathrm{swap}} \leq \eta(T_{\mathrm{comp}} + T_{\mathrm{mem}})$ when $\beta < 1$, we obtain the explicit upper bound
+\begin{equation}
+T_{\mathrm{total}} \leq (1+\eta)(T_{\mathrm{comp}} + T_{\mathrm{mem}}) + T_{\mathrm{sync}},
+\label{eq:wcet_bound}
+\end{equation}
+usable for worst-case execution time (WCET) analysis. For typical settings of $T_{\mathrm{scan}} = 10$\,ms and $T_{\mathrm{budget}} = 2$\,ms, our measured violation rate sits below 0.4\%, keeping the timing-fault frequency bounded.
+
+Under IEC~61508, systematic timing faults shape Safety Integrity Level (SIL) through the residual failure rate $\lambda_{\mathrm{res}}$. Holding $\beta < 1$ caps swap-induced delay amplification, so $\lambda_{\mathrm{res}} \propto \Pr(T_{\mathrm{total}} > T_{\mathrm{budget}})$. The regime constraints ($\alpha \geq \alpha_{\mathrm{critical}}$, $\beta < 1$) thus map directly onto SIL-oriented timing compliance.
 
 \subsection{Analytical Justification of Regime Thresholds}
 We further formalize the regime boundary conditions using critical inflection analysis of the latency model, yielding thresholds

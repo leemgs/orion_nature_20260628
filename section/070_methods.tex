@@ -12,17 +12,38 @@ by making the latency components $T_{\mathrm{comp}}$, $T_{\mathrm{mem}}$,
 $T_{\mathrm{swap}}$, and $T_{\mathrm{sync}}$ individually observable at
 runtime.
 
-\textsc{Orion} comprises three instrumented subsystems.
-(1)~\textbf{GPU process allocation}: worker processes are pre-allocated and
-pinned to reduce context-initialisation overhead and avoid contention-induced
-stalls.
-(2)~\textbf{NUMA-aware memory management}: allocations are bound to NUMA
-domains co-located with the target GPU to reduce fragmentation and improve
-locality.
-(3)~\textbf{GPU-tailored swapping}: selective layer offloading and partial
-reloads are implemented with asynchronous DMA transfers aligned to coarse
-tensor-granularity blocks, enabling overlap of computation and cross-tier data
-movement.
+\textsc{Orion} comprises three instrumented subsystems, borrowing the OS notion
+of memory ballooning to manage the whole VRAM--DRAM--NVMe hierarchy together.
+
+(1)~\textbf{GPU Process Allocator}: In multi-model serving, GPU context loading
+conflicts and VRAM interference dominate. The GPU Process Allocator reserves
+GPU execution resources up front---context IDs, memory pools, and kernel queues
+are pre-assigned---keeps memory segments separated across models to limit cache
+pollution, and co-schedules I/O-intensive and compute-intensive models so the
+GPU does not idle. It runs three policies: pre-defined execution slot
+reservation, context separation with fixed memory pools, and priority-based
+scheduling between I/O-bound and compute-bound models.
+
+(2)~\textbf{Task Memory Manager}: This module pairs task-level memory control
+with NUMA-aware policies: aligning processes with the right memory nodes via
+\texttt{mbind()} and \texttt{numa\_alloc\_onnode()} reduces remote-access delay,
+and a \texttt{jemalloc}-based custom heap separates small objects from large
+tensors to keep fragmentation manageable. Memory access latency is modeled as
+$T_{\mathrm{access}} = T_{\mathrm{local}} + \gamma \cdot T_{\mathrm{remote}}$,
+where $\gamma$ is the penalty factor for a remote NUMA access. A lightweight
+memory pressure prediction model reads live utilization and I/O queue depth to
+predict shortages and trigger mitigation early.
+
+(3)~\textbf{GPU Booster with Swap Support}: This module walks the execution
+graph to spot inactive tensors and overlaps their movement with computation via
+direct PCIe DMA and asynchronous I/O, aligning swap units to 4\,MB boundaries
+to avoid wasted transfers. Selective tensor offloading uses execution-graph
+analysis to flag tensors not immediately needed---inactive attention KV caches,
+intermediate checkpoints---as swap candidates. Priority-aware, block-aligned
+swapping weighs both tensor size and reuse frequency; on a cache miss, partial
+reloads keep transfer volume small. With these mechanisms, \textsc{Orion} served
+models up to 17B parameters on GPUs with less than 80\,GB of VRAM without
+observed instability.
 
 \subsection*{Regime probing methodology}
 

@@ -4,6 +4,25 @@
 This section extends the regime-dependent framework beyond large language model inference, demonstrating its applicability across diverse AI workloads, emerging memory hierarchies, and sustainability-critical deployment scenarios.
 
 
+\noindent\textbf{Resolving inconsistent prior results.}
+A regime boundary marks the point at which one term in the latency
+decomposition overtakes the others.
+This view resolves apparent contradictions in the literature: offloading
+and cache-centric papers report large gains on some configurations and none
+on others because they implicitly assume the coordination-dominated regime,
+and outside it amortized overheads resurface.
+Only in the coordination-dominated regime---where compute, locality, transfer,
+and synchronization are comparable in scale---does orchestration genuinely
+reshape behavior.
+
+\noindent\textbf{Deployment accessibility.}
+ORION requires no application changes---it drops into PyTorch-based
+stacks via \texttt{LD\_PRELOAD} and configuration files, or can be
+packaged as a lightweight container.
+Because the control plane is decoupled from the data path, a single
+configuration transfers across heterogeneous serving nodes, keeping
+fleet-wide deployment cost low.
+
 \noindent\textbf{Broader scope beyond AI serving.} Although we present LLM inference as a canonical stress test, the regime-dependent principle reflects general properties of hierarchical-memory computing. Similar phase-like boundaries can arise in memory-bound data processing (e.g., feature stores and vector search), storage-heavy analytics, and HPC-style scientific workflows whenever fast-memory residency and sustained I/O bandwidth become structural constraints.
 
 
@@ -70,9 +89,12 @@ ORION             & 322 & 7620 & 118.5 \\
 \end{table}
 
 Table~\ref{tab:energy} quantifies regime-dependent energy efficiency in terms of throughput per Watt across baselines.
-\subsection{Energy efficiency as a regime-dependent outcome}
-Energy efficiency emerges as a consequential implication of regime-dependent behavior. Within coordination-dominated regimes, effective orchestration reduces idle compute cycles, redundant transfers, and unnecessary synchronization, leading to improved throughput per unit of energy consumed. Outside these regimes, coordination overhead can increase energy cost per operation without improving latency or throughput.
+\subsection{Energy--Latency Coupling and Regime-Aware Efficiency}
+Energy efficiency emerges as a consequential implication of regime-dependent behavior. We report energy jointly with latency, since the two are coupled by hierarchical memory coordination. GPU power was sampled through the NVIDIA Management Library (NVML) at 200\,ms intervals during inference, with idle baseline power subtracted. We cross-validated against an external Yokogawa WT310E power analyzer (Kendall's $\tau = 1.0$).
 
+We report three metrics: energy per token $E_{\mathrm{token}} = P_{\mathrm{avg}} \cdot T_{\mathrm{inf}} / N_{\mathrm{tokens}}$, energy per inference $E_{\mathrm{inf}} = P_{\mathrm{avg}} \cdot T_{\mathrm{inf}}$, and energy-delay product $\mathrm{EDP} = E_{\mathrm{total}} \times \mathrm{Latency}$.
+
+Compared to PyTorch, ORION drops energy per token by 16.2\% and energy per inference by 14.7\%. EDP improves by 21.5\%, indicating that latency and energy both decrease rather than being traded off. Throughput-per-watt rises 18.5\% over PyTorch and 6--10\% over other baselines. As batch size and swap intensity vary, baselines trace a convex energy--latency curve: once latency creeps toward the I/O saturation boundary ($\beta \to 1$), synchronization stalls drive both runtime and dynamic power up together. ORION pulls the frontier inward because regime-aware coordination keeps the system away from the regime where swap oscillation and context reinitialization amplify energy.
 
 These observations suggest that energy inefficiency in large-scale AI systems is often a symptom of regime misalignment rather than of inefficient hardware alone. Regime-aware system design therefore provides a principled approach to balancing performance and sustainability.
 \vspace{2pt}
