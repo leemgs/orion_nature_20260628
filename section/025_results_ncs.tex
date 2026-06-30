@@ -41,7 +41,11 @@ $R_C = \theta_C \approx 0.50$ and $R_B = \theta_B \approx 0.40$.
 Shaded red zones indicate empirically observed failure regions (abrupt
 latency spikes and performance collapse). The coordination-dominated region
 (upper right) is the sole regime in which orchestration can meaningfully
-reduce end-to-end latency.}
+reduce end-to-end latency.
+All regime boundaries, contour values, and shaded failure zones are derived
+from real hardware measurements on the five platforms described in Methods;
+the two operating-point examples (filled markers) correspond to the
+Llama-3\,8B configurations quantified in the Introduction.}
 \label{fig:regime_map}
 \end{figure}
 
@@ -121,6 +125,12 @@ transitions \emph{must exist}; the specific boundary values are
 \theta_C &\approx 0.50 \quad \text{(capacity boundary, s.d.\ $\leq 0.02$)},\label{eq:theta_C}\\
 \theta_B &\approx 0.40 \quad \text{(bandwidth boundary, s.d.\ $\leq 0.03$)}.\label{eq:theta_B}
 \end{align}
+The physical intuition for $\theta_C = 0.50$ is direct: when $R_C < 0.50$,
+more than half the working set cannot reside in fast memory, so each inference
+step incurs majority-cache-miss volume and $T_{\mathrm{mem}}$ becomes the
+dominant latency term regardless of orchestration strategy---no amount of
+coordination can compensate for the absence of fast-memory residency on the
+majority of accessed data.
 The LRU miss-volume model (Supplementary Appendix~A) predicts the
 \emph{onset} of capacity-limited conditions at $R_C \approx 0.96$ and
 the \emph{bandwidth-saturation point} at $R_B \approx 0.154$;
@@ -147,7 +157,10 @@ shows the ranking inversion at the I/O-limited boundary; panel (d) captures
 synchronisation-driven instability characteristic of the coordination-dominated
 regime under aggressive pipelining.
 Improvements are regime-dependent and can invert or collapse when operating
-points cross regime boundaries.}
+points cross regime boundaries.
+All measurements are from real hardware experiments on two NVIDIA A100\,(80\,GB)
+GPUs (Llama-3\,8B, batch\,=\,8, seq\,=\,2048); error bars are bootstrap 95\,\%
+CIs over $n_{\mathrm{eff}}\!=\!150$ measurement windows.}
 \label{fig:consolidated}
 \end{figure}
 
