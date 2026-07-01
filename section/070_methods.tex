@@ -161,6 +161,12 @@ serialisation overhead.
 (CUPTI) sampling HBM read bandwidth and L2 cache-miss rate at
 per-kernel granularity; the memory-access latency is computed as
 miss\_volume / effective\_HBM\_bandwidth.
+The HBM miss-penalty per byte $\rho$ (platform constant in
+Eq.~\eqref{eq:lower_bound_regime}) is measured from the same CUPTI
+counters during a synthetic streaming kernel that issues controlled
+cache-miss loads; $\rho$ ranges from 1.2 to 3.1~ns/byte across the five
+platforms and platform-specific values are listed in Supplementary
+Table~A.1.
 
 \textbf{$T_{\mathrm{swap}}$} is measured directly from DMA transfer logs
 produced by \textsc{Orion}'s asynchronous transfer engine, which records

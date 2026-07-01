@@ -131,6 +131,12 @@ step incurs majority-cache-miss volume and $T_{\mathrm{mem}}$ becomes the
 dominant latency term regardless of orchestration strategy---no amount of
 coordination can compensate for the absence of fast-memory residency on the
 majority of accessed data.
+This threshold follows analytically from the majority-eviction condition:
+the cache-miss volume per step is
+$C_{\mathrm{miss}} = W - C_{\mathrm{fast}} = W(1 - R_C)$.
+The majority-eviction condition $C_{\mathrm{miss}} > W/2$ becomes
+$1 - R_C > 1/2$, yielding $\theta_C = 0.50$ independently of any
+platform-specific constant.
 The LRU miss-volume model (Supplementary Appendix~A) predicts the
 \emph{onset} of capacity-limited conditions at $R_C \approx 0.96$ and
 the \emph{bandwidth-saturation point} at $R_B \approx 0.154$;

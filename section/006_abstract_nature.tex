@@ -8,7 +8,7 @@
 As AI models exceed accelerator memory, inference latency is governed by
 hierarchical data coordination rather than computation.
 Here we show that this coordination is not continuously optimisable but
-exhibits intrinsic, regime-dependent limits with abrupt transitions.
+exhibits intrinsic regime transitions.
 Characterising any system by two dimensionless ratios---the fast-memory
 residency ratio ($R_C$) and the transfer-pressure ratio ($R_B$)---we
 identify three operationally distinct regimes: capacity-limited,
@@ -19,10 +19,10 @@ predictably and their rankings \emph{invert}: methods reducing latency by
 We establish structural lower bounds proving transitions are inevitable,
 empirically calibrate boundary values ($\theta_C \approx 0.50$,
 $\theta_B \approx 0.40$) across five hardware platforms, and validate
-phase-like transitions across language and vision workloads on GPU, TPU,
-and Inferentia2 systems.
+regime transitions across language and vision workloads on GPU, TPU,
+and Inferentia2.
 These results reframe hierarchical memory optimisation as regime-aware
-design, with implications for any memory-bound computing system.
+design, with broad implications for memory-bound computing.
 }
 
 \keywords{hierarchical memory systems, memory orchestration, AI inference,
