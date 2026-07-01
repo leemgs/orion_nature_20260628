@@ -98,8 +98,8 @@ These prescriptions are immediately actionable from two ratios computable
 before deployment.
 Crucially, both thresholds are predictable a priori without exhaustive
 sweeps: $\theta_C = 0.50$ follows analytically from the majority-eviction
-condition (hardware-independent, mean error $\leq 2.4\%$ across five
-platforms), and $\theta_B$ is estimable from three measurements---sustained
+condition (analytically derived, not dependent on specific hardware constants;
+consistent within $\pm 0.02$ across five platforms, mean error $\leq 2.4\%$), and $\theta_B$ is estimable from three measurements---sustained
 bandwidth $B_{\mathrm{slow}}$, single-run computation time $T_{\mathrm{comp}}$,
 and DMA log-derived amplification factors---obtainable in a 10-minute
 profiling session (mean error $\leq 4.7\%$ on PCIe-based platforms;
