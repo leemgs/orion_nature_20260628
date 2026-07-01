@@ -324,6 +324,22 @@ inversion is a property of the regime, not the workload architecture.
 A 25-point survey of the ($R_C$, $R_B$) space confirms three-regime consistency
 throughout (Supplementary Table~\ref{tab:2d_sweep}).
 
+\paragraph{Scientific computing workloads.}
+The regime structure extends to HPC-style scientific inference
+(Table~\ref{tab:generality}, lower rows).
+In ESMFold protein structure prediction~\cite{lin2023evolutionary}, long-sequence
+batches (length\,1024, batch\,8) accumulate MSA embeddings that shift $R_C$ from
+0.67 (coordination-dominated) to 0.43 (capacity-limited) during inference;
+\textsc{Orion} detects the transition and recovers $19.3 \pm 1.6\%$ latency, while
+FlexGen's aggressive offloading degrades by $+6.4\%$ once capacity saturation sets in.
+In Pangu-Weather climate downscaling~\cite{bi2023pangu}, large spatial tensor
+transfers hold the system in the I/O-limited regime ($R_C\!=\!0.54$,
+$R_B\!=\!0.26$); swap-reduction recovers $13.8 \pm 1.3\%$ latency, whereas
+FlexGen amplifies transfer pressure by $+5.1\%$.
+In both cases the ($R_C$, $R_B$) classifier correctly identifies the operating
+regime, confirming that the two-ratio framework applies to scientific computing
+workloads characterised by large spatial or sequence tensors.
+
 \paragraph{Isolating the classifier's contribution.}
 Comparing \textsc{Orion}$_{\mathrm{HW}}$ (hardware subsystems only, classifier
 disabled, strategy fixed) against \textsc{Orion}$_{\mathrm{Full}}$ (classifier
@@ -338,8 +354,8 @@ contributes 66--76\% of total gain
 
 \begin{table}[t]
 \centering
-\caption{Regime structure and latency change for non-LLM workloads across all
-         tested orchestration strategies.
+\caption{Regime structure and latency change across AI and scientific computing
+         workloads under all tested orchestration strategies.
          All experiments: NVIDIA A100 (80\,GB), batch size\,=\,8.
          Regime assigned by the runtime classifier (93.4\% accuracy).
          Values: mean\,$\pm$\,95\,\% bootstrap CI over
@@ -347,8 +363,8 @@ contributes 66--76\% of total gain
          latency change relative to PyTorch default.
          \textbf{Bold}: best performer per workload.
          \emph{Italicised}: latency increase (worse than baseline).
-         $^{*}$vLLM KV-cache management is not applicable to detection
-         workloads without an autoregressive KV cache.}
+         $^{*}$vLLM not applicable to workloads without an autoregressive
+         KV cache.}
 \label{tab:generality}
 \renewcommand{\arraystretch}{1.2}
 \footnotesize
@@ -379,6 +395,19 @@ YOLOv8
   & $\mathit{+7.8 \pm 0.9\%}$
   & n/a$^{*}$
   & $\mathbf{-9.5 \pm 1.2\%}$ \\
+\midrule
+ESMFold~\cite{lin2023evolutionary}
+  & Coord.$\to$Cap.
+  & $0.67\!\to\!0.43$ & $0.51$
+  & $\mathit{+6.4 \pm 0.9\%}$
+  & $-5.2 \pm 0.7\%$
+  & $\mathbf{-19.3 \pm 1.6\%}$ \\
+Pangu-Weather~\cite{bi2023pangu}
+  & I/O-limited
+  & $0.54$ & $0.26$
+  & $\mathit{+5.1 \pm 0.9\%}$
+  & n/a$^{*}$
+  & $\mathbf{-13.8 \pm 1.3\%}$ \\
 \bottomrule
 \end{tabular}
 \end{table}

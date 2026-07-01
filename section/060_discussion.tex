@@ -105,11 +105,10 @@ and DMA log-derived amplification factors---obtainable in a 10-minute
 profiling session (mean error $\leq 4.7\%$ on PCIe-based platforms;
 Supplementary Table~\ref{tab:threshold_prediction}).
 
-This perspective applies beyond large language models to any workload whose
-active working set cannot fully reside in fast memory---multimodal inference,
-RAG, data-intensive analytics, and HPC-style scientific computing---and
-provides a principled foundation for understanding scalability, stability, and
-energy efficiency in increasingly complex memory hierarchies.
+The framework applies to any workload whose active working set cannot fully
+reside in fast memory, including the scientific computing cases validated above,
+and provides a principled foundation for regime-aware design across increasingly
+complex memory hierarchies.
 
 Several limitations motivate future work.
 The classifier's 93.4\% accuracy is in-distribution: training and evaluation

@@ -68,26 +68,18 @@ We make four contributions:
     phase-like transitions, and that strategy rankings invert across
     regime boundaries.
   \item \textbf{Minimal analytical model.}
-    A structural lower bound on inference latency establishing that regime
-    transitions are inevitable, together with closed-form prediction formulas
-    for both thresholds: $\theta_C = 0.50$ is derived analytically from the
-    majority-eviction condition and depends only on the ratio of residency to
-    working-set size---not on specific hardware constants---and is consistent
-    within $\pm 0.02$ across all five tested platforms; $\theta_B =
-    R_B^{\mathrm{sat}} \times (1 + \alpha_{\mathrm{wb}} + \alpha_q)$
-    is estimable from three hardware measurements obtainable in a 10-minute
-    profiling session---enabling pre-deployment threshold estimation without
-    exhaustive regime sweeps.
+    A structural lower bound proving regime transitions are inevitable;
+    $\theta_C = 0.50$ derived analytically from the majority-eviction condition
+    (consistent within $\pm 0.02$ across five platforms);
+    $\theta_B$ estimable from three measurements in a 10-minute profiling session.
   \item \textbf{Multi-platform validation.}
-    Predicted transitions are confirmed across language and vision workloads
-    on NVIDIA A100, TPU v4, AWS Inferentia2, AMD MI250, and Intel Optane-PMem
-    systems, with boundaries consistent to within $\pm 0.05$.
+    Transitions confirmed on NVIDIA A100, TPU v4, AWS Inferentia2, AMD MI250,
+    and Intel Optane-PMem, with boundaries consistent to within $\pm 0.05$.
   \item \textbf{Workload generality.}
-    Regime structure is demonstrated beyond autoregressive LLMs: BLIP2
-    visual question-answering, retrieval-augmented generation (RAG), and
-    edge YOLOv8 deployments all exhibit the same three-regime behaviour,
-    confirming that the framework governs any workload whose working set
-    exceeds fast-memory capacity.
+    Three-regime behaviour demonstrated across autoregressive LLMs, vision QA,
+    RAG, edge detection, and scientific computing workloads (protein structure
+    prediction, climate downscaling), confirming framework applicability to any
+    workload whose working set exceeds fast-memory capacity.
 \end{itemize}
 
 Together, these results reframe hierarchical memory coordination as
